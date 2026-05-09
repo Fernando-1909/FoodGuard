@@ -22,4 +22,13 @@ interface FoodDao {
 
     @Query("SELECT * FROM food_items WHERE isConsumed = 0 AND expirationDate <= :threshold ORDER BY expirationDate ASC")
     fun getItemsNearExpiration(threshold: Long): Flow<List<FoodItem>>
+
+    @Query("SELECT COUNT(*) FROM food_items WHERE isConsumed = 1")
+    fun getConsumedCount(): Flow<Int>
+
+    @Query("SELECT COUNT(*) FROM food_items WHERE isConsumed = 0 AND expirationDate < :currentTime")
+    fun getExpiredCount(currentTime: Long): Flow<Int>
+    
+    @Query("SELECT * FROM food_items WHERE isConsumed = 1")
+    fun getConsumedItems(): Flow<List<FoodItem>>
 }

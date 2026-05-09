@@ -25,4 +25,10 @@ class FoodRepository(private val foodDao: FoodDao) {
     fun getItemsNearExpiration(threshold: Long): Flow<List<FoodItem>> {
         return foodDao.getItemsNearExpiration(threshold)
     }
+
+    fun getConsumedCount(): Flow<Int> = foodDao.getConsumedCount()
+    
+    fun getExpiredCount(currentTime: Long): Flow<Int> = foodDao.getExpiredCount(currentTime)
+    
+    fun getConsumedItems(): Flow<List<FoodItem>> = foodDao.getConsumedItems()
 }

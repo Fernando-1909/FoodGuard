@@ -16,11 +16,15 @@ class FoodViewModel(application: Application) : AndroidViewModel(application) {
 
     private val repository: FoodRepository
     val allActiveItems: LiveData<List<FoodItem>>
+    val consumedCount: LiveData<Int>
+    val consumedItems: LiveData<List<FoodItem>>
 
     init {
         val foodDao = FoodDatabase.getDatabase(application).foodDao()
         repository = FoodRepository(foodDao)
         allActiveItems = repository.allActiveItems.asLiveData()
+        consumedCount = repository.getConsumedCount().asLiveData()
+        consumedItems = repository.getConsumedItems().asLiveData()
     }
 
     fun insert(foodItem: FoodItem) = viewModelScope.launch(Dispatchers.IO) {
@@ -44,5 +48,9 @@ class FoodViewModel(application: Application) : AndroidViewModel(application) {
         calendar.add(Calendar.DAY_OF_YEAR, daysThreshold)
         val threshold = calendar.timeInMillis
         return repository.getItemsNearExpiration(threshold).asLiveData()
+    }
+
+    fun getExpiredCount(): LiveData<Int> {
+        return repository.getExpiredCount(System.currentTimeMillis()).asLiveData()
     }
 }
