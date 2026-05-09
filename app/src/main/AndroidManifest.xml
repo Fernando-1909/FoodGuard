@@ -22,6 +22,14 @@
         </activity>
 
         <activity
+            android:name=".LoginFormActivity"
+            android:exported="false" />
+
+        <activity
+            android:name=".SignUpActivity"
+            android:exported="false" />
+
+        <activity
             android:name=".MainActivity"
             android:exported="true" />
     </application>
