@@ -7,8 +7,11 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.TextView
 import androidx.fragment.app.Fragment
+import androidx.lifecycle.lifecycleScope
+import com.example.foodguard.data.FoodDatabase
 import com.example.foodguard.data.UserManager
 import com.google.android.material.button.MaterialButton
+import kotlinx.coroutines.launch
 
 class ProfileFragment : Fragment() {
 
@@ -25,9 +28,17 @@ class ProfileFragment : Fragment() {
         super.onViewCreated(view, savedInstanceState)
 
         userManager = UserManager(requireContext())
-
         val tvUserName = view.findViewById<TextView>(R.id.tvUserName)
-        tvUserName.text = userManager.getUserName() ?: "Usuário FoodGuard"
+        val tvUserEmail = view.findViewById<TextView>(R.id.tvUserEmail)
+
+        val email = userManager.getUserEmail()
+        if (email != null) {
+            tvUserEmail?.text = email
+            lifecycleScope.launch {
+                val user = FoodDatabase.getDatabase(requireContext()).userDao().getUserByEmail(email)
+                tvUserName.text = user?.name ?: "Usuário FoodGuard"
+            }
+        }
 
         view.findViewById<MaterialButton>(R.id.btnLogout).setOnClickListener {
             userManager.logout()

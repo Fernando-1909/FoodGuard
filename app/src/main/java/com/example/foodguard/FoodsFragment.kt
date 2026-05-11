@@ -5,7 +5,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
-import androidx.fragment.app.viewModels
+import androidx.fragment.app.activityViewModels
 import androidx.recyclerview.widget.RecyclerView
 import com.example.foodguard.adapter.FoodAdapter
 import com.example.foodguard.viewmodel.FoodViewModel
@@ -13,7 +13,7 @@ import com.google.android.material.snackbar.Snackbar
 
 class FoodsFragment : Fragment() {
 
-    private val viewModel: FoodViewModel by viewModels()
+    private val viewModel: FoodViewModel by activityViewModels()
     private lateinit var adapter: FoodAdapter
 
     override fun onCreateView(

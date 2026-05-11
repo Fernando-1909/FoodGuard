@@ -6,26 +6,23 @@ import android.content.SharedPreferences
 class UserManager(context: Context) {
     private val prefs: SharedPreferences = context.getSharedPreferences("user_prefs", Context.MODE_PRIVATE)
 
-    fun saveUser(name: String, email: String, password: String) {
+    fun setLoggedInUser(email: String) {
         prefs.edit().apply {
-            putString("user_name", name)
-            putString("user_email", email)
-            putString("user_password", password)
+            putString("current_user_email", email)
+            putBoolean("is_logged_in", true)
             apply()
         }
     }
 
-    fun getUserEmail(): String? = prefs.getString("user_email", null)
-    fun getUserPassword(): String? = prefs.getString("user_password", null)
-    fun getUserName(): String? = prefs.getString("user_name", null)
+    fun getUserEmail(): String? = prefs.getString("current_user_email", null)
 
     fun isLoggedIn(): Boolean = prefs.getBoolean("is_logged_in", false)
 
-    fun setLoggedIn(loggedIn: Boolean) {
-        prefs.edit().putBoolean("is_logged_in", loggedIn).apply()
-    }
-
     fun logout() {
-        prefs.edit().putBoolean("is_logged_in", false).apply()
+        prefs.edit().apply {
+            putBoolean("is_logged_in", false)
+            remove("current_user_email")
+            apply()
+        }
     }
 }

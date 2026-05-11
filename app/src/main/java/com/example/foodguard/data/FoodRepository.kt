@@ -4,7 +4,7 @@ import kotlinx.coroutines.flow.Flow
 
 class FoodRepository(private val foodDao: FoodDao) {
 
-    val allActiveItems: Flow<List<FoodItem>> = foodDao.getAllActiveItems()
+    fun getAllActiveItems(userId: String): Flow<List<FoodItem>> = foodDao.getAllActiveItems(userId)
 
     suspend fun insert(foodItem: FoodItem) {
         foodDao.insert(foodItem)
@@ -22,13 +22,17 @@ class FoodRepository(private val foodDao: FoodDao) {
         foodDao.markAsConsumed(foodItemId)
     }
 
-    fun getItemsNearExpiration(threshold: Long): Flow<List<FoodItem>> {
-        return foodDao.getItemsNearExpiration(threshold)
+    fun getNearExpirationItems(userId: String, currentTime: Long, threshold: Long): Flow<List<FoodItem>> {
+        return foodDao.getNearExpirationItems(userId, currentTime, threshold)
     }
 
-    fun getConsumedCount(): Flow<Int> = foodDao.getConsumedCount()
+    fun getExpiredItems(userId: String, currentTime: Long): Flow<List<FoodItem>> {
+        return foodDao.getExpiredItems(userId, currentTime)
+    }
+
+    fun getConsumedCount(userId: String): Flow<Int> = foodDao.getConsumedCount(userId)
     
-    fun getExpiredCount(currentTime: Long): Flow<Int> = foodDao.getExpiredCount(currentTime)
+    fun getExpiredCount(userId: String, currentTime: Long): Flow<Int> = foodDao.getExpiredCount(userId, currentTime)
     
-    fun getConsumedItems(): Flow<List<FoodItem>> = foodDao.getConsumedItems()
+    fun getConsumedItems(userId: String): Flow<List<FoodItem>> = foodDao.getConsumedItems(userId)
 }

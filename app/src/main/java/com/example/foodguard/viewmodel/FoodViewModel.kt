@@ -1,34 +1,77 @@
 package com.example.foodguard.viewmodel
 
 import android.app.Application
-import androidx.lifecycle.AndroidViewModel
-import androidx.lifecycle.LiveData
-import androidx.lifecycle.asLiveData
-import androidx.lifecycle.viewModelScope
+import androidx.lifecycle.*
 import com.example.foodguard.data.FoodDatabase
 import com.example.foodguard.data.FoodItem
 import com.example.foodguard.data.FoodRepository
+import com.example.foodguard.data.UserManager
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.launch
 import java.util.Calendar
 
 class FoodViewModel(application: Application) : AndroidViewModel(application) {
 
     private val repository: FoodRepository
-    val allActiveItems: LiveData<List<FoodItem>>
-    val consumedCount: LiveData<Int>
-    val consumedItems: LiveData<List<FoodItem>>
+    private val userManager = UserManager(application)
+    
+    private val _currentUserId = MutableStateFlow(userManager.getUserEmail() ?: "")
+    private val _notificationFilter = MutableStateFlow(0) // 0: All, 1: Near, 2: Expired
+
+    @OptIn(ExperimentalCoroutinesApi::class)
+    val allActiveItems: LiveData<List<FoodItem>> = _currentUserId.flatMapLatest { userId ->
+        repository.getAllActiveItems(userId)
+    }.asLiveData()
+
+    @OptIn(ExperimentalCoroutinesApi::class)
+    val notificationItems: LiveData<List<FoodItem>> = combine(_currentUserId, _notificationFilter) { userId, filter ->
+        userId to filter
+    }.flatMapLatest { (userId, filter) ->
+        val currentTime = System.currentTimeMillis()
+        when (filter) {
+            1 -> {
+                val cal = Calendar.getInstance()
+                cal.add(Calendar.DAY_OF_YEAR, 3)
+                repository.getNearExpirationItems(userId, currentTime, cal.timeInMillis)
+            }
+            2 -> repository.getExpiredItems(userId, currentTime)
+            else -> repository.getAllActiveItems(userId)
+        }
+    }.asLiveData()
+
+    @OptIn(ExperimentalCoroutinesApi::class)
+    val consumedCount: LiveData<Int> = _currentUserId.flatMapLatest { userId ->
+        repository.getConsumedCount(userId)
+    }.asLiveData()
+
+    @OptIn(ExperimentalCoroutinesApi::class)
+    val consumedItems: LiveData<List<FoodItem>> = _currentUserId.flatMapLatest { userId ->
+        repository.getConsumedItems(userId)
+    }.asLiveData()
+
+    @OptIn(ExperimentalCoroutinesApi::class)
+    val expiredCount: LiveData<Int> = _currentUserId.flatMapLatest { userId ->
+        repository.getExpiredCount(userId, System.currentTimeMillis())
+    }.asLiveData()
 
     init {
         val foodDao = FoodDatabase.getDatabase(application).foodDao()
         repository = FoodRepository(foodDao)
-        allActiveItems = repository.allActiveItems.asLiveData()
-        consumedCount = repository.getConsumedCount().asLiveData()
-        consumedItems = repository.getConsumedItems().asLiveData()
     }
 
+    fun setNotificationFilter(filter: Int) {
+        _notificationFilter.value = filter
+    }
+
+    fun getCurrentUserId(): String = userManager.getUserEmail() ?: ""
+
     fun insert(foodItem: FoodItem) = viewModelScope.launch(Dispatchers.IO) {
-        repository.insert(foodItem)
+        val itemWithUser = foodItem.copy(userId = getCurrentUserId())
+        repository.insert(itemWithUser)
     }
 
     fun update(foodItem: FoodItem) = viewModelScope.launch(Dispatchers.IO) {
@@ -41,16 +84,5 @@ class FoodViewModel(application: Application) : AndroidViewModel(application) {
 
     fun markAsConsumed(foodItemId: Long) = viewModelScope.launch(Dispatchers.IO) {
         repository.markAsConsumed(foodItemId)
-    }
-
-    fun getItemsNearExpiration(daysThreshold: Int): LiveData<List<FoodItem>> {
-        val calendar = Calendar.getInstance()
-        calendar.add(Calendar.DAY_OF_YEAR, daysThreshold)
-        val threshold = calendar.timeInMillis
-        return repository.getItemsNearExpiration(threshold).asLiveData()
-    }
-
-    fun getExpiredCount(): LiveData<Int> {
-        return repository.getExpiredCount(System.currentTimeMillis()).asLiveData()
     }
 }

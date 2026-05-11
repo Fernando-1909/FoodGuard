@@ -8,9 +8,12 @@ import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
+import androidx.lifecycle.lifecycleScope
+import com.example.foodguard.data.FoodDatabase
 import com.example.foodguard.data.UserManager
 import com.google.android.material.button.MaterialButton
 import com.google.android.material.textfield.TextInputEditText
+import kotlinx.coroutines.launch
 
 class LoginFormActivity : AppCompatActivity() {
     private lateinit var userManager: UserManager
@@ -33,23 +36,28 @@ class LoginFormActivity : AppCompatActivity() {
         }
 
         findViewById<MaterialButton>(R.id.btnLoginSubmit).setOnClickListener {
-            val email = findViewById<TextInputEditText>(R.id.etEmail).text.toString()
+            val email = findViewById<TextInputEditText>(R.id.etEmail).text.toString().trim().lowercase()
             val password = findViewById<TextInputEditText>(R.id.etPassword).text.toString()
-
-            val savedEmail = userManager.getUserEmail()
-            val savedPassword = userManager.getUserPassword()
 
             if (email.isEmpty() || password.isEmpty()) {
                 Toast.makeText(this, "Preencha todos os campos", Toast.LENGTH_SHORT).show()
-            } else if (email == savedEmail && password == savedPassword) {
-                userManager.setLoggedIn(true)
-                
-                val intent = Intent(this, MainActivity::class.java)
-                intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
-                startActivity(intent)
-                finish()
-            } else {
-                Toast.makeText(this, "E-mail ou senha incorretos", Toast.LENGTH_SHORT).show()
+                return@setOnClickListener
+            }
+
+            lifecycleScope.launch {
+                val userDao = FoodDatabase.getDatabase(this@LoginFormActivity).userDao()
+                val user = userDao.getUserByEmail(email)
+
+                if (user != null && user.password == password) {
+                    userManager.setLoggedInUser(email)
+                    
+                    val intent = Intent(this@LoginFormActivity, MainActivity::class.java)
+                    intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+                    startActivity(intent)
+                    finish()
+                } else {
+                    Toast.makeText(this@LoginFormActivity, "E-mail ou senha incorretos", Toast.LENGTH_SHORT).show()
+                }
             }
         }
     }

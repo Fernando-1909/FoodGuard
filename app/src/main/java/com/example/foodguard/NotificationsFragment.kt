@@ -5,7 +5,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
-import androidx.fragment.app.viewModels
+import androidx.fragment.app.activityViewModels
 import androidx.recyclerview.widget.RecyclerView
 import com.example.foodguard.adapter.FoodAdapter
 import com.example.foodguard.viewmodel.FoodViewModel
@@ -14,7 +14,7 @@ import com.google.android.material.tabs.TabLayout
 
 class NotificationsFragment : Fragment() {
 
-    private val viewModel: FoodViewModel by viewModels()
+    private val viewModel: FoodViewModel by activityViewModels()
     private lateinit var adapter: FoodAdapter
 
     override fun onCreateView(
@@ -39,48 +39,25 @@ class NotificationsFragment : Fragment() {
 
         val tabLayout = view.findViewById<TabLayout>(R.id.tabLayout)
         
-        // Inicialmente mostra todos os itens que estão vencendo (ex: nos próximos 3 dias)
-        observeNearExpiration(3)
+        // Observa a lista única de notificações do ViewModel
+        viewModel.notificationItems.observe(viewLifecycleOwner) { items ->
+            adapter.submitList(items)
+        }
 
         tabLayout.addOnTabSelectedListener(object : TabLayout.OnTabSelectedListener {
             override fun onTabSelected(tab: TabLayout.Tab?) {
                 when (tab?.position) {
-                    0 -> observeAll()
-                    1 -> observeNearExpiration(3)
-                    2 -> observeExpired()
-                    3 -> showTips()
+                    0 -> viewModel.setNotificationFilter(0) // Todos
+                    1 -> viewModel.setNotificationFilter(1) // Próximos do vencimento
+                    2 -> viewModel.setNotificationFilter(2) // Vencidos
+                    3 -> adapter.submitList(emptyList()) // Dicas (ainda não implementado)
                 }
             }
             override fun onTabUnselected(tab: TabLayout.Tab?) {}
             override fun onTabReselected(tab: TabLayout.Tab?) {}
         })
-    }
-
-    private fun observeAll() {
-        viewModel.allActiveItems.removeObservers(viewLifecycleOwner)
-        viewModel.allActiveItems.observe(viewLifecycleOwner) { items ->
-            adapter.submitList(items)
-        }
-    }
-
-    private fun observeNearExpiration(days: Int) {
-        viewModel.allActiveItems.removeObservers(viewLifecycleOwner)
-        viewModel.getItemsNearExpiration(days).observe(viewLifecycleOwner) { items ->
-            adapter.submitList(items)
-        }
-    }
-
-    private fun observeExpired() {
-        viewModel.allActiveItems.removeObservers(viewLifecycleOwner)
-        // threshold = 0 para itens já vencidos
-        viewModel.getItemsNearExpiration(0).observe(viewLifecycleOwner) { items ->
-            adapter.submitList(items)
-        }
-    }
-
-    private fun showTips() {
-        viewModel.allActiveItems.removeObservers(viewLifecycleOwner)
-        // TODO: Implementar dicas de conservação reais
-        adapter.submitList(emptyList())
+        
+        // Define o filtro inicial baseado na aba selecionada
+        viewModel.setNotificationFilter(tabLayout.selectedTabPosition)
     }
 }

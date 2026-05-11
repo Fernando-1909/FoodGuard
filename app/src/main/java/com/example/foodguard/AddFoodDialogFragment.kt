@@ -53,6 +53,7 @@ class AddFoodDialogFragment : DialogFragment() {
             }
 
             val foodItem = FoodItem(
+                userId = viewModel.getCurrentUserId(),
                 name = name,
                 category = category,
                 quantity = quantity,

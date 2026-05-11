@@ -8,6 +8,7 @@ import java.util.Date
 data class FoodItem(
     @PrimaryKey(autoGenerate = true)
     val id: Long = 0,
+    val userId: String, // ID do usuário proprietário do item
     val name: String,
     val expirationDate: Long, // Almacenado como timestamp
     val category: String? = null,
