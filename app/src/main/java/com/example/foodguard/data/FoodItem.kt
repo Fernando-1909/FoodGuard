@@ -1,17 +1,23 @@
 package com.example.foodguard.data
 
+import android.os.Parcelable
 import androidx.room.Entity
 import androidx.room.PrimaryKey
-import java.util.Date
+import kotlinx.parcelize.Parcelize
 
+@Parcelize
 @Entity(tableName = "food_items")
 data class FoodItem(
     @PrimaryKey(autoGenerate = true)
     val id: Long = 0,
-    val userId: String, // ID do usuário proprietário do item
+    val userId: String,
     val name: String,
-    val expirationDate: Long, // Almacenado como timestamp
+    val expirationDate: Long,
+    val purchaseDate: Long = System.currentTimeMillis(),
     val category: String? = null,
     val quantity: String? = null,
-    val isConsumed: Boolean = false
-)
+    val storageLocation: String? = "Geladeira",
+    val isConsumed: Boolean = false,
+    val conservationTips: String? = null,
+    val consumptionSuggestions: String? = null
+) : Parcelable

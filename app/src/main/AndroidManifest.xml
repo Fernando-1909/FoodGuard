@@ -32,6 +32,11 @@
         <activity
             android:name=".MainActivity"
             android:exported="true" />
+
+        <activity
+            android:name=".FoodDetailActivity"
+            android:exported="false"
+            android:theme="@style/Theme.FoodGuard" />
     </application>
 
 </manifest>
