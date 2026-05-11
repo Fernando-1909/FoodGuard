@@ -5,7 +5,7 @@ import androidx.room.Database
 import androidx.room.Room
 import androidx.room.RoomDatabase
 
-@Database(entities = [FoodItem::class, User::class], version = 3, exportSchema = false)
+@Database(entities = [FoodItem::class, User::class], version = 8, exportSchema = false)
 abstract class FoodDatabase : RoomDatabase() {
 
     abstract fun foodDao(): FoodDao
@@ -22,7 +22,7 @@ abstract class FoodDatabase : RoomDatabase() {
                     FoodDatabase::class.java,
                     "food_database"
                 )
-                .fallbackToDestructiveMigration() // Adicionado para evitar crashes ao alterar o esquema sem migração manual
+                .fallbackToDestructiveMigration()
                 .build()
                 INSTANCE = instance
                 instance

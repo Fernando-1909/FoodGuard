@@ -20,7 +20,7 @@ class FoodViewModel(application: Application) : AndroidViewModel(application) {
     private val userManager = UserManager(application)
     
     private val _currentUserId = MutableStateFlow(userManager.getUserEmail() ?: "")
-    private val _notificationFilter = MutableStateFlow(0) // 0: All, 1: Near, 2: Expired
+    private val _notificationFilter = MutableStateFlow(0) // 0: All, 1: Near, 2: Expired, 3: Reminders
 
     @OptIn(ExperimentalCoroutinesApi::class)
     val allActiveItems: LiveData<List<FoodItem>> = _currentUserId.flatMapLatest { userId ->
@@ -39,6 +39,7 @@ class FoodViewModel(application: Application) : AndroidViewModel(application) {
                 repository.getNearExpirationItems(userId, currentTime, cal.timeInMillis)
             }
             2 -> repository.getExpiredItems(userId, currentTime)
+            3 -> repository.getItemsWithReminders(userId)
             else -> repository.getAllActiveItems(userId)
         }
     }.asLiveData()
@@ -61,16 +62,25 @@ class FoodViewModel(application: Application) : AndroidViewModel(application) {
     init {
         val foodDao = FoodDatabase.getDatabase(application).foodDao()
         repository = FoodRepository(foodDao)
+        // Refresh user ID on init to be sure
+        _currentUserId.value = userManager.getUserEmail() ?: ""
     }
 
     fun setNotificationFilter(filter: Int) {
         _notificationFilter.value = filter
     }
 
-    fun getCurrentUserId(): String = userManager.getUserEmail() ?: ""
+    fun getCurrentUserId(): String {
+        val email = userManager.getUserEmail() ?: ""
+        if (_currentUserId.value != email) {
+            _currentUserId.value = email
+        }
+        return email
+    }
 
     fun insert(foodItem: FoodItem) = viewModelScope.launch(Dispatchers.IO) {
-        val itemWithUser = foodItem.copy(userId = getCurrentUserId())
+        val currentId = getCurrentUserId()
+        val itemWithUser = foodItem.copy(userId = currentId)
         repository.insert(itemWithUser)
     }
 

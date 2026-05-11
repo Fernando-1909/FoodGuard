@@ -314,6 +314,7 @@
                 app:strokeColor="@color/divider_gray" />
 
             <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnEditInfo"
                 style="@style/Widget.MaterialComponents.Button.OutlinedButton"
                 android:layout_width="match_parent"
                 android:layout_height="56dp"
@@ -328,6 +329,7 @@
                 app:strokeColor="@color/divider_gray" />
 
             <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnAdjustQuantity"
                 style="@style/Widget.MaterialComponents.Button.OutlinedButton"
                 android:layout_width="match_parent"
                 android:layout_height="56dp"
@@ -342,6 +344,7 @@
                 app:strokeColor="@color/divider_gray" />
 
             <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnSetReminder"
                 style="@style/Widget.MaterialComponents.Button.OutlinedButton"
                 android:layout_width="match_parent"
                 android:layout_height="56dp"

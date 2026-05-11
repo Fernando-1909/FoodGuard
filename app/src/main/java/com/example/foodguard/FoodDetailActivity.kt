@@ -1,17 +1,21 @@
 package com.example.foodguard
 
+import android.app.DatePickerDialog
+import android.app.TimePickerDialog
 import android.os.Bundle
 import android.widget.ImageView
 import android.widget.TextView
+import android.widget.Toast
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.viewModels
+import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
 import com.example.foodguard.data.FoodItem
 import com.example.foodguard.viewmodel.FoodViewModel
 import com.google.android.material.appbar.MaterialToolbar
 import com.google.android.material.button.MaterialButton
-import com.google.android.material.card.MaterialCardView
+import com.google.android.material.textfield.TextInputEditText
 import java.text.SimpleDateFormat
 import java.util.*
 import java.util.concurrent.TimeUnit
@@ -20,6 +24,8 @@ class FoodDetailActivity : AppCompatActivity() {
 
     private val viewModel: FoodViewModel by viewModels()
     private val dateFormat = SimpleDateFormat("dd/MM/yyyy", Locale.getDefault())
+    private val dateTimeFormat = SimpleDateFormat("dd/MM/yyyy HH:mm", Locale.getDefault())
+    private lateinit var currentFoodItem: FoodItem
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -27,19 +33,43 @@ class FoodDetailActivity : AppCompatActivity() {
         setContentView(R.layout.activity_food_detail)
 
         val foodItem = intent.getParcelableExtra<FoodItem>("food_item") ?: return finish()
+        currentFoodItem = foodItem
 
         setupToolbar()
-        setupFoodHeader(foodItem)
-        setupWarningCard(foodItem)
-        setupInfoSection(foodItem)
-        setupRecommendations(foodItem)
-        setupActions(foodItem)
+        updateUI(currentFoodItem)
+        setupActions()
+
+        // Observe changes if any update happens
+        viewModel.allActiveItems.observe(this) { items ->
+            val updated = items.find { it.id == currentFoodItem.id }
+            if (updated != null) {
+                currentFoodItem = updated
+                updateUI(currentFoodItem)
+            }
+        }
     }
 
     private fun setupToolbar() {
         val toolbar = findViewById<MaterialToolbar>(R.id.toolbar)
         setSupportActionBar(toolbar)
         toolbar.setNavigationOnClickListener { finish() }
+    }
+
+    private fun updateUI(item: FoodItem) {
+        setupFoodHeader(item)
+        setupWarningCard(item)
+        setupInfoSection(item)
+        setupRecommendations(item)
+        
+        // Show reminder info if exists
+        val btnReminder = findViewById<MaterialButton>(R.id.btnSetReminder)
+        if (item.reminderTimestamp != null) {
+            btnReminder.text = "Lembrete: ${dateTimeFormat.format(Date(item.reminderTimestamp))}"
+            btnReminder.setIconResource(android.R.drawable.ic_lock_idle_alarm)
+        } else {
+            btnReminder.text = "Definir lembrete"
+            btnReminder.setIconResource(android.R.drawable.ic_lock_silent_mode_off)
+        }
     }
 
     private fun setupFoodHeader(item: FoodItem) {
@@ -50,7 +80,7 @@ class FoodDetailActivity : AppCompatActivity() {
     private fun setupWarningCard(item: FoodItem) {
         val tvWarningTitle = findViewById<TextView>(R.id.tvWarningTitle)
         val tvWarningSubtitle = findViewById<TextView>(R.id.tvWarningSubtitle)
-        val cardWarning = findViewById<MaterialCardView>(R.id.cardWarning)
+        val cardWarning = findViewById<com.google.android.material.card.MaterialCardView>(R.id.cardWarning)
 
         val daysLeft = getDaysLeft(item.expirationDate)
         
@@ -74,25 +104,21 @@ class FoodDetailActivity : AppCompatActivity() {
     }
 
     private fun setupInfoSection(item: FoodItem) {
-        // Quantity
         val layoutQuantity = findViewById<android.view.View>(R.id.layoutQuantity)
         layoutQuantity.findViewById<TextView>(R.id.tvInfoLabel).text = "Quantidade"
         layoutQuantity.findViewById<TextView>(R.id.tvInfoValue).text = item.quantity ?: "Não informada"
         layoutQuantity.findViewById<ImageView>(R.id.ivInfoIcon).setImageResource(android.R.drawable.ic_menu_sort_by_size)
 
-        // Location
         val layoutLocation = findViewById<android.view.View>(R.id.layoutLocation)
         layoutLocation.findViewById<TextView>(R.id.tvInfoLabel).text = "Local de armazenamento"
         layoutLocation.findViewById<TextView>(R.id.tvInfoValue).text = item.storageLocation ?: "Geladeira"
         layoutLocation.findViewById<ImageView>(R.id.ivInfoIcon).setImageResource(android.R.drawable.ic_dialog_map)
 
-        // Purchase Date
         val layoutPurchase = findViewById<android.view.View>(R.id.layoutPurchaseDate)
         layoutPurchase.findViewById<TextView>(R.id.tvInfoLabel).text = "Data de compra"
         layoutPurchase.findViewById<TextView>(R.id.tvInfoValue).text = dateFormat.format(Date(item.purchaseDate))
         layoutPurchase.findViewById<ImageView>(R.id.ivInfoIcon).setImageResource(android.R.drawable.ic_menu_my_calendar)
 
-        // Expiry Date
         val layoutExpiry = findViewById<android.view.View>(R.id.layoutExpiryDate)
         layoutExpiry.findViewById<TextView>(R.id.tvInfoLabel).text = "Data de validade"
         layoutExpiry.findViewById<TextView>(R.id.tvInfoValue).text = dateFormat.format(Date(item.expirationDate))
@@ -100,20 +126,87 @@ class FoodDetailActivity : AppCompatActivity() {
     }
 
     private fun setupRecommendations(item: FoodItem) {
-        findViewById<TextView>(R.id.tvConservationTips).text = item.conservationTips ?: "Nenhuma recomendação disponível."
-        findViewById<TextView>(R.id.tvConsumptionSuggestions).text = item.consumptionSuggestions ?: "Nenhuma sugestão disponível."
+        findViewById<TextView>(R.id.tvConservationTips).text = item.conservationTips ?: "Mantenha em local fresco e arejado."
+        findViewById<TextView>(R.id.tvConsumptionSuggestions).text = item.consumptionSuggestions ?: "Ideal para consumo imediato ou receitas."
     }
 
-    private fun setupActions(item: FoodItem) {
+    private fun setupActions() {
         findViewById<MaterialButton>(R.id.btnMarkConsumed).setOnClickListener {
-            viewModel.markAsConsumed(item.id)
+            viewModel.markAsConsumed(currentFoodItem.id)
+            Toast.makeText(this, "Item consumido!", Toast.LENGTH_SHORT).show()
             finish()
         }
 
         findViewById<MaterialButton>(R.id.btnDiscard).setOnClickListener {
-            viewModel.delete(item)
+            viewModel.delete(currentFoodItem)
+            Toast.makeText(this, "Item descartado!", Toast.LENGTH_SHORT).show()
             finish()
         }
+
+        findViewById<MaterialButton>(R.id.btnEditInfo).setOnClickListener {
+            val dialog = AddFoodDialogFragment.newInstance(currentFoodItem)
+            dialog.show(supportFragmentManager, "EditFoodDialog")
+        }
+
+        findViewById<MaterialButton>(R.id.btnAdjustQuantity).setOnClickListener {
+            showAdjustQuantityDialog()
+        }
+
+        findViewById<MaterialButton>(R.id.btnSetReminder).setOnClickListener {
+            if (currentFoodItem.reminderTimestamp != null) {
+                showRemoveReminderDialog()
+            } else {
+                showReminderPicker()
+            }
+        }
+    }
+
+    private fun showRemoveReminderDialog() {
+        AlertDialog.Builder(this)
+            .setTitle("Remover Lembrete")
+            .setMessage("Deseja remover o lembrete definido?")
+            .setPositiveButton("Sim") { _, _ ->
+                val updated = currentFoodItem.copy(reminderTimestamp = null)
+                viewModel.update(updated)
+                Toast.makeText(this, "Lembrete removido", Toast.LENGTH_SHORT).show()
+            }
+            .setNegativeButton("Não", null)
+            .show()
+    }
+
+    private fun showAdjustQuantityDialog() {
+        val input = TextInputEditText(this)
+        input.setText(currentFoodItem.quantity)
+        input.hint = "Ex: 500g, 2 unidades"
+
+        AlertDialog.Builder(this)
+            .setTitle("Ajustar Quantidade")
+            .setView(input)
+            .setPositiveButton("Salvar") { _, _ ->
+                val newQty = input.text.toString()
+                val updated = currentFoodItem.copy(quantity = newQty)
+                viewModel.update(updated)
+                Toast.makeText(this, "Quantidade atualizada!", Toast.LENGTH_SHORT).show()
+            }
+            .setNegativeButton("Cancelar", null)
+            .show()
+    }
+
+    private fun showReminderPicker() {
+        val calendar = Calendar.getInstance()
+        DatePickerDialog(this, { _, year, month, day ->
+            calendar.set(year, month, day)
+            TimePickerDialog(this, { _, hour, minute ->
+                calendar.set(Calendar.HOUR_OF_DAY, hour)
+                calendar.set(Calendar.MINUTE, minute)
+                
+                val reminderTime = calendar.timeInMillis
+                val updated = currentFoodItem.copy(reminderTimestamp = reminderTime)
+                viewModel.update(updated)
+                
+                Toast.makeText(this, "Lembrete definido para: ${dateTimeFormat.format(calendar.time)}", Toast.LENGTH_LONG).show()
+            }, calendar.get(Calendar.HOUR_OF_DAY), calendar.get(Calendar.MINUTE), true).show()
+        }, calendar.get(Calendar.YEAR), calendar.get(Calendar.MONTH), calendar.get(Calendar.DAY_OF_MONTH)).show()
     }
 
     private fun getDaysLeft(expirationTime: Long): Long {

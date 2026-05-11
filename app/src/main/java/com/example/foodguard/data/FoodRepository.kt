@@ -35,4 +35,6 @@ class FoodRepository(private val foodDao: FoodDao) {
     fun getExpiredCount(userId: String, currentTime: Long): Flow<Int> = foodDao.getExpiredCount(userId, currentTime)
     
     fun getConsumedItems(userId: String): Flow<List<FoodItem>> = foodDao.getConsumedItems(userId)
+
+    fun getItemsWithReminders(userId: String): Flow<List<FoodItem>> = foodDao.getItemsWithReminders(userId)
 }

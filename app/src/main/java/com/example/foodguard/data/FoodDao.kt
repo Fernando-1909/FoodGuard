@@ -34,4 +34,7 @@ interface FoodDao {
     
     @Query("SELECT * FROM food_items WHERE userId = :userId AND isConsumed = 1 ORDER BY id DESC")
     fun getConsumedItems(userId: String): Flow<List<FoodItem>>
+
+    @Query("SELECT * FROM food_items WHERE userId = :userId AND isConsumed = 0 AND reminderTimestamp IS NOT NULL ORDER BY reminderTimestamp ASC")
+    fun getItemsWithReminders(userId: String): Flow<List<FoodItem>>
 }

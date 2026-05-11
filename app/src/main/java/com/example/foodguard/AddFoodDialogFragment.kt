@@ -2,21 +2,19 @@ package com.example.foodguard
 
 import android.app.DatePickerDialog
 import android.os.Bundle
-import android.text.Editable
-import android.text.TextWatcher
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.ArrayAdapter
 import android.widget.AutoCompleteTextView
 import android.widget.Button
+import android.widget.TextView
 import android.widget.Toast
 import androidx.fragment.app.DialogFragment
 import androidx.fragment.app.activityViewModels
 import com.example.foodguard.data.FoodItem
 import com.example.foodguard.viewmodel.FoodViewModel
 import com.google.android.material.textfield.TextInputEditText
-import java.text.ParseException
 import java.text.SimpleDateFormat
 import java.util.*
 
@@ -25,11 +23,28 @@ class AddFoodDialogFragment : DialogFragment() {
     private val viewModel: FoodViewModel by activityViewModels()
     private var calendar = Calendar.getInstance()
     private val dateFormatter = SimpleDateFormat("dd/MM/yyyy", Locale.getDefault())
+    private var foodToEdit: FoodItem? = null
 
     private val categories = arrayOf(
         "Carnes", "Frutas", "Legumes", "Verduras", "Laticínios", 
-        "Grãos/Cereais", "Bebidas", "Congelados", "Padaria", "Outros"
+        "Grãos/Cereais", "Bebidas", "Congelados", "Padaria", "Sobremesa",
+        "Massas", "Carboidratos", "Outros"
     )
+
+    companion object {
+        fun newInstance(foodItem: FoodItem? = null): AddFoodDialogFragment {
+            val fragment = AddFoodDialogFragment()
+            val args = Bundle()
+            args.putParcelable("food_item", foodItem)
+            fragment.arguments = args
+            return fragment
+        }
+    }
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        foodToEdit = arguments?.getParcelable("food_item")
+    }
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -42,6 +57,7 @@ class AddFoodDialogFragment : DialogFragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
+        val tvTitle = view.findViewById<TextView>(R.id.tvDialogTitle)
         val etName = view.findViewById<TextInputEditText>(R.id.etFoodName)
         val etCategory = view.findViewById<AutoCompleteTextView>(R.id.etCategory)
         val etQuantity = view.findViewById<TextInputEditText>(R.id.etQuantity)
@@ -52,34 +68,45 @@ class AddFoodDialogFragment : DialogFragment() {
         val adapter = ArrayAdapter(requireContext(), android.R.layout.simple_dropdown_item_1line, categories)
         etCategory.setAdapter(adapter)
 
-        // Setup Date Picker and Mask
+        // Setup Date Picker
         etDate.setOnClickListener {
             showDatePicker(etDate)
         }
-        setupDateMask(etDate)
+        etDate.isFocusable = false // Prevent keyboard from showing
+
+        // If editing, populate fields
+        foodToEdit?.let { food ->
+            tvTitle?.text = "Editar Alimento"
+            etName.setText(food.name)
+            etCategory.setText(food.category, false)
+            etQuantity.setText(food.quantity)
+            calendar.timeInMillis = food.expirationDate
+            etDate.setText(dateFormatter.format(calendar.time))
+            btnAdd.text = "Atualizar"
+        }
 
         btnAdd.setOnClickListener {
-            val name = etName.text.toString()
+            val name = etName.text.toString().trim()
             val category = etCategory.text.toString()
             val quantity = etQuantity.text.toString()
             val dateStr = etDate.text.toString()
 
-            if (name.isBlank() || dateStr.isBlank()) {
-                Toast.makeText(context, "Nome e Data são obrigatórios", Toast.LENGTH_SHORT).show()
+            if (name.isBlank()) {
+                etName.error = "O nome é obrigatório"
                 return@setOnClickListener
             }
 
-            try {
-                val date = dateFormatter.parse(dateStr)
-                if (date != null) {
-                    calendar.time = date
-                }
-            } catch (e: ParseException) {
-                Toast.makeText(context, "Formato de data inválido", Toast.LENGTH_SHORT).show()
+            if (dateStr.isBlank()) {
+                etDate.error = "A data é obrigatória"
                 return@setOnClickListener
             }
 
-            val foodItem = FoodItem(
+            val updatedFood = foodToEdit?.copy(
+                name = name,
+                category = category,
+                quantity = quantity,
+                expirationDate = calendar.timeInMillis
+            ) ?: FoodItem(
                 userId = viewModel.getCurrentUserId(),
                 name = name,
                 category = category,
@@ -87,46 +114,15 @@ class AddFoodDialogFragment : DialogFragment() {
                 expirationDate = calendar.timeInMillis
             )
 
-            viewModel.insert(foodItem)
+            if (foodToEdit != null) {
+                viewModel.update(updatedFood)
+                Toast.makeText(context, "Alimento atualizado!", Toast.LENGTH_SHORT).show()
+            } else {
+                viewModel.insert(updatedFood)
+                Toast.makeText(context, "Alimento adicionado!", Toast.LENGTH_SHORT).show()
+            }
             dismiss()
         }
-    }
-
-    private fun setupDateMask(etDate: TextInputEditText) {
-        etDate.addTextChangedListener(object : TextWatcher {
-            private var isUpdating = false
-            private val mask = "##/##/####"
-
-            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
-            override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {
-                if (isUpdating) {
-                    isUpdating = false
-                    return
-                }
-
-                val str = s.toString().replace("[^\\d]".toRegex(), "")
-                var formatted = ""
-                var i = 0
-                for (m in mask.toCharArray()) {
-                    if (m != '#') {
-                        if (i < str.length) {
-                            formatted += m
-                        }
-                        continue
-                    }
-                    if (i < str.length) {
-                        formatted += str[i]
-                    }
-                    i++
-                }
-
-                isUpdating = true
-                etDate.setText(formatted)
-                etDate.setSelection(formatted.length)
-            }
-
-            override fun afterTextChanged(s: Editable?) {}
-        })
     }
 
     private fun showDatePicker(etDate: TextInputEditText) {
