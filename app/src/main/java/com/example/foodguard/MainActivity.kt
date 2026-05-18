@@ -4,6 +4,7 @@ import android.os.Bundle
 import android.view.View
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
+import androidx.appcompat.app.AppCompatDelegate
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.fragment.app.Fragment
@@ -14,6 +15,10 @@ class MainActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        
+        // Força o modo claro independente do sistema
+        AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO)
+        
         enableEdgeToEdge()
         setContentView(R.layout.activity_main)
         
@@ -21,6 +26,7 @@ class MainActivity : AppCompatActivity() {
         if (mainView != null) {
             ViewCompat.setOnApplyWindowInsetsListener(mainView) { v, insets ->
                 val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
+                // Ajusta o padding apenas para as laterais e topo, deixando o bottom para o BottomAppBar/Navigation
                 v.setPadding(systemBars.left, systemBars.top, systemBars.right, 0)
                 insets
             }
@@ -66,7 +72,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun showAddFoodDialog() {
-        val dialog = AddFoodDialogFragment()
+        val dialog = AddFoodDialogFragment.newInstance()
         dialog.show(supportFragmentManager, "AddFoodDialog")
     }
 }

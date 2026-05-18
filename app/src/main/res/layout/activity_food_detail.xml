@@ -170,7 +170,7 @@
                 android:layout_marginTop="24dp"
                 android:drawablePadding="8dp"
                 android:gravity="center_vertical"
-                android:text="Recomendações"
+                android:text="Análise da IA FoodGuard"
                 android:textColor="@color/primary_black"
                 android:textSize="16sp"
                 android:textStyle="bold"
@@ -204,41 +204,7 @@
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:layout_marginTop="8dp"
-                        android:text="Mantenha refrigerado entre 2°C e 8°C. Após aberto, consumir em até 5 dias."
-                        android:textColor="@color/text_gray"
-                        android:textSize="13sp"
-                        android:lineSpacingExtra="4dp" />
-                </LinearLayout>
-            </com.google.android.material.card.MaterialCardView>
-
-            <com.google.android.material.card.MaterialCardView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="12dp"
-                app:cardBackgroundColor="@color/background_gray"
-                app:cardCornerRadius="12dp"
-                app:cardElevation="0dp">
-
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:orientation="vertical"
-                    android:padding="16dp">
-
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="Sugestões de consumo"
-                        android:textColor="@color/primary_black"
-                        android:textSize="13sp"
-                        android:textStyle="bold" />
-
-                    <TextView
-                        android:id="@+id/tvConsumptionSuggestions"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="8dp"
-                        android:text="Ideal para sanduíches, saladas ou pão francês. Combine com tomate e manjericão."
+                        android:text="Analisando alimento..."
                         android:textColor="@color/text_gray"
                         android:textSize="13sp"
                         android:lineSpacingExtra="4dp" />

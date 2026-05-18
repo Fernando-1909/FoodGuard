@@ -3,6 +3,7 @@ package com.example.foodguard
 import android.app.DatePickerDialog
 import android.app.TimePickerDialog
 import android.os.Bundle
+import android.view.View
 import android.widget.ImageView
 import android.widget.TextView
 import android.widget.Toast
@@ -10,12 +11,16 @@ import androidx.activity.enableEdgeToEdge
 import androidx.activity.viewModels
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
+import androidx.appcompat.app.AppCompatDelegate
 import androidx.core.content.ContextCompat
+import androidx.lifecycle.lifecycleScope
+import com.example.foodguard.data.ConservationAI
 import com.example.foodguard.data.FoodItem
 import com.example.foodguard.viewmodel.FoodViewModel
 import com.google.android.material.appbar.MaterialToolbar
 import com.google.android.material.button.MaterialButton
 import com.google.android.material.textfield.TextInputEditText
+import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
 import java.util.*
 import java.util.concurrent.TimeUnit
@@ -29,10 +34,20 @@ class FoodDetailActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        
+        // Força o modo claro independente do sistema
+        AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO)
+        
         enableEdgeToEdge()
         setContentView(R.layout.activity_food_detail)
 
-        val foodItem = intent.getParcelableExtra<FoodItem>("food_item") ?: return finish()
+        val foodItem = if (android.os.Build.VERSION.SDK_INT >= 33) {
+            intent.getParcelableExtra("food_item", FoodItem::class.java)
+        } else {
+            @Suppress("DEPRECATION")
+            intent.getParcelableExtra("food_item")
+        } ?: return finish()
+        
         currentFoodItem = foodItem
 
         setupToolbar()
@@ -104,30 +119,44 @@ class FoodDetailActivity : AppCompatActivity() {
     }
 
     private fun setupInfoSection(item: FoodItem) {
-        val layoutQuantity = findViewById<android.view.View>(R.id.layoutQuantity)
+        val layoutQuantity = findViewById<View>(R.id.layoutQuantity)
         layoutQuantity.findViewById<TextView>(R.id.tvInfoLabel).text = "Quantidade"
         layoutQuantity.findViewById<TextView>(R.id.tvInfoValue).text = item.quantity ?: "Não informada"
         layoutQuantity.findViewById<ImageView>(R.id.ivInfoIcon).setImageResource(android.R.drawable.ic_menu_sort_by_size)
 
-        val layoutLocation = findViewById<android.view.View>(R.id.layoutLocation)
+        val layoutLocation = findViewById<View>(R.id.layoutLocation)
         layoutLocation.findViewById<TextView>(R.id.tvInfoLabel).text = "Local de armazenamento"
         layoutLocation.findViewById<TextView>(R.id.tvInfoValue).text = item.storageLocation ?: "Geladeira"
         layoutLocation.findViewById<ImageView>(R.id.ivInfoIcon).setImageResource(android.R.drawable.ic_dialog_map)
 
-        val layoutPurchase = findViewById<android.view.View>(R.id.layoutPurchaseDate)
+        val layoutPurchase = findViewById<View>(R.id.layoutPurchaseDate)
         layoutPurchase.findViewById<TextView>(R.id.tvInfoLabel).text = "Data de compra"
         layoutPurchase.findViewById<TextView>(R.id.tvInfoValue).text = dateFormat.format(Date(item.purchaseDate))
         layoutPurchase.findViewById<ImageView>(R.id.ivInfoIcon).setImageResource(android.R.drawable.ic_menu_my_calendar)
 
-        val layoutExpiry = findViewById<android.view.View>(R.id.layoutExpiryDate)
+        val layoutExpiry = findViewById<View>(R.id.layoutExpiryDate)
         layoutExpiry.findViewById<TextView>(R.id.tvInfoLabel).text = "Data de validade"
         layoutExpiry.findViewById<TextView>(R.id.tvInfoValue).text = dateFormat.format(Date(item.expirationDate))
         layoutExpiry.findViewById<ImageView>(R.id.ivInfoIcon).setImageResource(android.R.drawable.ic_menu_today)
     }
 
     private fun setupRecommendations(item: FoodItem) {
-        findViewById<TextView>(R.id.tvConservationTips).text = item.conservationTips ?: "Mantenha em local fresco e arejado."
-        findViewById<TextView>(R.id.tvConsumptionSuggestions).text = item.consumptionSuggestions ?: "Ideal para consumo imediato ou receitas."
+        val tipsView = findViewById<TextView>(R.id.tvConservationTips)
+        
+        // Se o item já tiver dicas personalizadas salvas no banco, usamos elas.
+        // Caso contrário, a IA gera as dicas baseadas no nome/categoria.
+        if (!item.conservationTips.isNullOrBlank()) {
+            tipsView.text = item.conservationTips
+        } else {
+            lifecycleScope.launch {
+                try {
+                    val aiTips = ConservationAI.getTips(item.name, item.category)
+                    tipsView.text = aiTips.joinToString("\n\n• ", prefix = "• ")
+                } catch (e: Exception) {
+                    tipsView.text = "Dicas não disponíveis no momento."
+                }
+            }
+        }
     }
 
     private fun setupActions() {

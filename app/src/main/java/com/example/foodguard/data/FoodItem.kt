@@ -19,6 +19,5 @@ data class FoodItem(
     val storageLocation: String? = "Geladeira",
     val isConsumed: Boolean = false,
     val conservationTips: String? = null,
-    val consumptionSuggestions: String? = null,
     val reminderTimestamp: Long? = null
 ) : Parcelable

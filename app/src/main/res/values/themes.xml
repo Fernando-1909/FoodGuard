@@ -1,6 +1,6 @@
 <resources xmlns:tools="http://schemas.android.com/tools">
-    <!-- Base application theme. -->
-    <style name="Base.Theme.FoodGuard" parent="Theme.MaterialComponents.DayNight.NoActionBar">
+    <!-- Base application theme forced to Light. -->
+    <style name="Base.Theme.FoodGuard" parent="Theme.MaterialComponents.Light.NoActionBar">
         <!-- Primary brand color. -->
         <item name="colorPrimary">@color/primary_black</item>
         <item name="colorPrimaryVariant">@color/black</item>

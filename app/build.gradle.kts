@@ -59,6 +59,9 @@ dependencies {
     implementation(libs.androidx.lifecycle.runtime.ktx)
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.8.1")
 
+    // Gemini AI
+    implementation(libs.google.generativeai)
+
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
