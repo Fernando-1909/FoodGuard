@@ -13,3 +13,4 @@
 .externalNativeBuild
 .cxx
 local.properties
+java/com/example/foodguard/data/ConservationAI.kt

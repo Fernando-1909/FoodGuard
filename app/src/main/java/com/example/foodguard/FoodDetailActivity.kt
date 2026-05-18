@@ -34,10 +34,7 @@ class FoodDetailActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        
-        // Força o modo claro independente do sistema
         AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO)
-        
         enableEdgeToEdge()
         setContentView(R.layout.activity_food_detail)
 
@@ -54,7 +51,6 @@ class FoodDetailActivity : AppCompatActivity() {
         updateUI(currentFoodItem)
         setupActions()
 
-        // Observe changes if any update happens
         viewModel.allActiveItems.observe(this) { items ->
             val updated = items.find { it.id == currentFoodItem.id }
             if (updated != null) {
@@ -76,7 +72,6 @@ class FoodDetailActivity : AppCompatActivity() {
         setupInfoSection(item)
         setupRecommendations(item)
         
-        // Show reminder info if exists
         val btnReminder = findViewById<MaterialButton>(R.id.btnSetReminder)
         if (item.reminderTimestamp != null) {
             btnReminder.text = "Lembrete: ${dateTimeFormat.format(Date(item.reminderTimestamp))}"
@@ -143,8 +138,6 @@ class FoodDetailActivity : AppCompatActivity() {
     private fun setupRecommendations(item: FoodItem) {
         val tipsView = findViewById<TextView>(R.id.tvConservationTips)
         
-        // Se o item já tiver dicas personalizadas salvas no banco, usamos elas.
-        // Caso contrário, a IA gera as dicas baseadas no nome/categoria.
         if (!item.conservationTips.isNullOrBlank()) {
             tipsView.text = item.conservationTips
         } else {
@@ -153,7 +146,8 @@ class FoodDetailActivity : AppCompatActivity() {
                     val aiTips = ConservationAI.getTips(item.name, item.category)
                     tipsView.text = aiTips.joinToString("\n\n• ", prefix = "• ")
                 } catch (e: Exception) {
-                    tipsView.text = "Dicas não disponíveis no momento."
+                    // MUDANÇA: Agora mostramos o erro real para diagnosticar
+                    tipsView.text = "ERRO TÉCNICO IA: ${e.message ?: "Falha na conexão"}\n\nVerifique se o Gemini está ativo no projeto gen-lang-client-0663146289."
                 }
             }
         }
