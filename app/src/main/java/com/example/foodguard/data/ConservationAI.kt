@@ -5,10 +5,6 @@ import kotlinx.coroutines.withContext
 
 object ConservationAI {
 
-    /**
-     * Retorna dicas de conservação fixas baseadas no nome ou categoria do alimento.
-     * A IA foi totalmente removida para garantir estabilidade e funcionamento offline.
-     */
     suspend fun getTips(foodName: String, category: String?): List<String> = withContext(Dispatchers.IO) {
         val name = foodName.lowercase()
         val cat = category?.lowercase() ?: ""
