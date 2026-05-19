@@ -2,6 +2,8 @@ package com.example.foodguard
 
 import android.app.DatePickerDialog
 import android.app.TimePickerDialog
+import android.graphics.BitmapFactory
+import android.net.Uri
 import android.os.Bundle
 import android.view.View
 import android.widget.ImageView
@@ -85,6 +87,37 @@ class FoodDetailActivity : AppCompatActivity() {
     private fun setupFoodHeader(item: FoodItem) {
         findViewById<TextView>(R.id.tvDetailName).text = item.name
         findViewById<TextView>(R.id.tvDetailCategory).text = item.category ?: "Geral"
+        
+        val ivDetailIcon = findViewById<ImageView>(R.id.ivDetailIcon)
+        
+        if (!item.imageUri.isNullOrEmpty()) {
+            try {
+                val uri = Uri.parse(item.imageUri)
+                ivDetailIcon.clearColorFilter()
+                ivDetailIcon.scaleType = ImageView.ScaleType.CENTER_CROP
+                
+                if (uri.scheme == "file") {
+                    val bitmap = BitmapFactory.decodeFile(uri.path)
+                    if (bitmap != null) {
+                        ivDetailIcon.setImageBitmap(bitmap)
+                    } else {
+                        throw Exception("Erro ao carregar bitmap")
+                    }
+                } else {
+                    ivDetailIcon.setImageURI(uri)
+                }
+            } catch (e: Exception) {
+                setDefaultIcon(ivDetailIcon)
+            }
+        } else {
+            setDefaultIcon(ivDetailIcon)
+        }
+    }
+
+    private fun setDefaultIcon(imageView: ImageView) {
+        imageView.setImageResource(android.R.drawable.ic_menu_gallery)
+        imageView.scaleType = ImageView.ScaleType.CENTER_INSIDE
+        imageView.setColorFilter(ContextCompat.getColor(this, R.color.text_gray))
     }
 
     private fun setupWarningCard(item: FoodItem) {
@@ -146,8 +179,7 @@ class FoodDetailActivity : AppCompatActivity() {
                     val aiTips = ConservationAI.getTips(item.name, item.category)
                     tipsView.text = aiTips.joinToString("\n\n• ", prefix = "• ")
                 } catch (e: Exception) {
-                    // MUDANÇA: Agora mostramos o erro real para diagnosticar
-                    tipsView.text = "ERRO TÉCNICO IA: ${e.message ?: "Falha na conexão"}\n\nVerifique se o Gemini está ativo no projeto gen-lang-client-0663146289."
+                    tipsView.text = "Dicas não disponíveis no momento."
                 }
             }
         }

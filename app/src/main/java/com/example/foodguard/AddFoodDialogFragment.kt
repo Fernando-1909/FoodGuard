@@ -1,20 +1,25 @@
 package com.example.foodguard
 
+import android.app.AlertDialog
 import android.app.DatePickerDialog
+import android.graphics.Bitmap
+import android.graphics.BitmapFactory
+import android.net.Uri
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.ArrayAdapter
-import android.widget.AutoCompleteTextView
-import android.widget.Button
-import android.widget.TextView
-import android.widget.Toast
+import android.widget.*
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.core.content.FileProvider
 import androidx.fragment.app.DialogFragment
 import androidx.fragment.app.activityViewModels
 import com.example.foodguard.data.FoodItem
 import com.example.foodguard.viewmodel.FoodViewModel
+import com.google.android.material.imageview.ShapeableImageView
 import com.google.android.material.textfield.TextInputEditText
+import java.io.File
+import java.io.FileOutputStream
 import java.text.SimpleDateFormat
 import java.util.*
 
@@ -24,12 +29,70 @@ class AddFoodDialogFragment : DialogFragment() {
     private var calendar = Calendar.getInstance()
     private val dateFormatter = SimpleDateFormat("dd/MM/yyyy", Locale.getDefault())
     private var foodToEdit: FoodItem? = null
+    
+    private var currentImageUri: Uri? = null
+    private var cameraTempUri: Uri? = null
+
+    private lateinit var ivFoodPhoto: ShapeableImageView
 
     private val categories = arrayOf(
         "Carnes", "Frutas", "Legumes", "Verduras", "Laticínios", 
         "Grãos/Cereais", "Bebidas", "Congelados", "Padaria", "Sobremesa",
         "Massas", "Carboidratos", "Outros"
     )
+
+    private val getContent = registerForActivityResult(ActivityResultContracts.GetContent()) { uri: Uri? ->
+        uri?.let {
+            val savedUri = saveImageLocally(it)
+            if (savedUri != null) {
+                currentImageUri = savedUri
+                displayImage(savedUri)
+            }
+        }
+    }
+
+    private val takePicture = registerForActivityResult(ActivityResultContracts.TakePicture()) { success: Boolean ->
+        if (success && cameraTempUri != null) {
+            val savedUri = saveImageLocally(cameraTempUri!!)
+            if (savedUri != null) {
+                currentImageUri = savedUri
+                displayImage(savedUri)
+            }
+        }
+    }
+
+    private fun displayImage(uri: Uri?) {
+        if (uri == null) return
+        try {
+            val inputStream = requireContext().contentResolver.openInputStream(uri)
+            val bitmap = BitmapFactory.decodeStream(inputStream)
+            inputStream?.close()
+            
+            if (bitmap != null) {
+                ivFoodPhoto.setImageBitmap(bitmap)
+                ivFoodPhoto.scaleType = ImageView.ScaleType.CENTER_CROP
+                ivFoodPhoto.clearColorFilter()
+            }
+        } catch (e: Exception) {
+            e.printStackTrace()
+        }
+    }
+
+    private fun saveImageLocally(uri: Uri): Uri? {
+        return try {
+            val inputStream = requireContext().contentResolver.openInputStream(uri)
+            val fileName = "food_${System.currentTimeMillis()}.jpg"
+            val file = File(requireContext().filesDir, fileName)
+            val outputStream = FileOutputStream(file)
+            inputStream?.copyTo(outputStream)
+            inputStream?.close()
+            outputStream.close()
+            Uri.fromFile(file)
+        } catch (e: Exception) {
+            e.printStackTrace()
+            null
+        }
+    }
 
     companion object {
         fun newInstance(foodItem: FoodItem? = null): AddFoodDialogFragment {
@@ -63,18 +126,17 @@ class AddFoodDialogFragment : DialogFragment() {
         val etQuantity = view.findViewById<TextInputEditText>(R.id.etQuantity)
         val etDate = view.findViewById<TextInputEditText>(R.id.etExpirationDate)
         val btnAdd = view.findViewById<Button>(R.id.btnAdd)
+        ivFoodPhoto = view.findViewById(R.id.ivFoodPhoto)
+        val btnSelectPhoto = view.findViewById<Button>(R.id.btnSelectPhoto)
 
-        // Setup Category Dropdown
         val adapter = ArrayAdapter(requireContext(), android.R.layout.simple_dropdown_item_1line, categories)
         etCategory.setAdapter(adapter)
 
-        // Setup Date Picker
-        etDate.setOnClickListener {
-            showDatePicker(etDate)
-        }
-        etDate.isFocusable = false // Prevent keyboard from showing
+        etDate.setOnClickListener { showDatePicker(etDate) }
+        etDate.isFocusable = false
 
-        // If editing, populate fields
+        btnSelectPhoto.setOnClickListener { showImagePickerOptions() }
+
         foodToEdit?.let { food ->
             tvTitle?.text = "Editar Alimento"
             etName.setText(food.name)
@@ -83,6 +145,11 @@ class AddFoodDialogFragment : DialogFragment() {
             calendar.timeInMillis = food.expirationDate
             etDate.setText(dateFormatter.format(calendar.time))
             btnAdd.text = "Atualizar"
+            
+            food.imageUri?.let { uriString ->
+                currentImageUri = Uri.parse(uriString)
+                displayImage(currentImageUri)
+            }
         }
 
         btnAdd.setOnClickListener {
@@ -91,13 +158,9 @@ class AddFoodDialogFragment : DialogFragment() {
             val quantity = etQuantity.text.toString()
             val dateStr = etDate.text.toString()
 
-            if (name.isBlank()) {
-                etName.error = "O nome é obrigatório"
-                return@setOnClickListener
-            }
-
-            if (dateStr.isBlank()) {
-                etDate.error = "A data é obrigatória"
+            if (name.isBlank() || dateStr.isBlank()) {
+                if (name.isBlank()) etName.error = "O nome é obrigatório"
+                if (dateStr.isBlank()) etDate.error = "A data é obrigatória"
                 return@setOnClickListener
             }
 
@@ -105,24 +168,54 @@ class AddFoodDialogFragment : DialogFragment() {
                 name = name,
                 category = category,
                 quantity = quantity,
-                expirationDate = calendar.timeInMillis
+                expirationDate = calendar.timeInMillis,
+                imageUri = currentImageUri?.toString()
             ) ?: FoodItem(
                 userId = viewModel.getCurrentUserId(),
                 name = name,
                 category = category,
                 quantity = quantity,
-                expirationDate = calendar.timeInMillis
+                expirationDate = calendar.timeInMillis,
+                imageUri = currentImageUri?.toString()
             )
 
             if (foodToEdit != null) {
                 viewModel.update(updatedFood)
-                Toast.makeText(context, "Alimento atualizado!", Toast.LENGTH_SHORT).show()
             } else {
                 viewModel.insert(updatedFood)
-                Toast.makeText(context, "Alimento adicionado!", Toast.LENGTH_SHORT).show()
             }
             dismiss()
         }
+    }
+
+    private fun showImagePickerOptions() {
+        val options = arrayOf("Câmera", "Galeria")
+        AlertDialog.Builder(requireContext())
+            .setTitle("Selecionar Foto")
+            .setItems(options) { _, which ->
+                when (which) {
+                    0 -> openCamera()
+                    1 -> openGallery()
+                }
+            }
+            .show()
+    }
+
+    private fun openGallery() {
+        getContent.launch("image/*")
+    }
+
+    private fun openCamera() {
+        val fileName = "temp_photo.jpg"
+        val storageDir = requireContext().getExternalFilesDir(android.os.Environment.DIRECTORY_PICTURES)
+        val tempFile = File(storageDir, fileName)
+        val uri = FileProvider.getUriForFile(
+            requireContext(),
+            "${requireContext().packageName}.fileprovider",
+            tempFile
+        )
+        cameraTempUri = uri
+        takePicture.launch(uri)
     }
 
     private fun showDatePicker(etDate: TextInputEditText) {
@@ -141,9 +234,6 @@ class AddFoodDialogFragment : DialogFragment() {
 
     override fun onStart() {
         super.onStart()
-        dialog?.window?.setLayout(
-            ViewGroup.LayoutParams.MATCH_PARENT,
-            ViewGroup.LayoutParams.WRAP_CONTENT
-        )
+        dialog?.window?.setLayout(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT)
     }
 }

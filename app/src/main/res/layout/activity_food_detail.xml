@@ -36,8 +36,8 @@
 
             <!-- Food Header -->
             <com.google.android.material.card.MaterialCardView
-                android:layout_width="120dp"
-                android:layout_height="120dp"
+                android:layout_width="match_parent"
+                android:layout_height="250dp"
                 android:layout_gravity="center"
                 app:cardBackgroundColor="@color/background_gray"
                 app:cardCornerRadius="24dp"
@@ -45,11 +45,10 @@
 
                 <ImageView
                     android:id="@+id/ivDetailIcon"
-                    android:layout_width="60dp"
-                    android:layout_height="60dp"
-                    android:layout_gravity="center"
-                    android:src="@android:drawable/ic_menu_gallery"
-                    app:tint="@color/text_gray" />
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:scaleType="centerCrop"
+                    android:src="@android:drawable/ic_menu_gallery" />
             </com.google.android.material.card.MaterialCardView>
 
             <TextView
@@ -210,31 +209,6 @@
                         android:lineSpacingExtra="4dp" />
                 </LinearLayout>
             </com.google.android.material.card.MaterialCardView>
-
-            <View
-                android:layout_width="match_parent"
-                android:layout_height="1dp"
-                android:layout_marginTop="24dp"
-                android:background="@color/divider_gray" />
-
-            <!-- History -->
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="24dp"
-                android:text="Histórico"
-                android:textColor="@color/primary_black"
-                android:textSize="16sp"
-                android:textStyle="bold" />
-
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="16dp"
-                android:orientation="vertical">
-                <!-- History items would go here, matching the timeline style -->
-                <include layout="@layout/item_history" />
-            </LinearLayout>
 
             <View
                 android:layout_width="match_parent"

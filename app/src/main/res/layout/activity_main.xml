@@ -33,8 +33,10 @@
             app:elevation="0dp"
             app:labelVisibilityMode="labeled"
             app:menu="@menu/bottom_nav_menu"
-            app:itemIconTint="@color/primary_black"
-            app:itemTextColor="@color/primary_black" />
+            app:itemIconTint="@color/bnv_tab_item_color"
+            app:itemTextColor="@color/bnv_tab_item_color"
+            app:itemTextAppearanceActive="@style/BottomNavText.Active"
+            app:itemTextAppearanceInactive="@style/BottomNavText.Inactive" />
 
     </com.google.android.material.bottomappbar.BottomAppBar>
 

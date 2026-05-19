@@ -51,7 +51,6 @@ class NotificationsFragment : Fragment() {
                     0 -> viewModel.setNotificationFilter(0) // Todos
                     1 -> viewModel.setNotificationFilter(1) // Próximos do vencimento
                     2 -> viewModel.setNotificationFilter(2) // Vencidos
-                    3 -> viewModel.setNotificationFilter(3) // Lembretes específicos
                 }
             }
             override fun onTabUnselected(tab: TabLayout.Tab?) {}

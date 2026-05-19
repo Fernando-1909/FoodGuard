@@ -11,7 +11,6 @@ import androidx.fragment.app.activityViewModels
 import androidx.recyclerview.widget.RecyclerView
 import com.example.foodguard.adapter.FoodAdapter
 import com.example.foodguard.viewmodel.FoodViewModel
-import com.google.android.material.button.MaterialButton
 
 class FoodsFragment : Fragment() {
 
@@ -29,7 +28,6 @@ class FoodsFragment : Fragment() {
         super.onViewCreated(view, savedInstanceState)
 
         val tvExpiringCount = view.findViewById<TextView>(R.id.tvExpiringCount)
-        val btnAddFood = view.findViewById<MaterialButton>(R.id.btnAddFood)
         val recyclerView = view.findViewById<RecyclerView>(R.id.rvFoodItems)
 
         adapter = FoodAdapter { foodItem ->
@@ -38,11 +36,6 @@ class FoodsFragment : Fragment() {
             startActivity(intent)
         }
         recyclerView.adapter = adapter
-
-        btnAddFood.setOnClickListener {
-            val dialog = AddFoodDialogFragment()
-            dialog.show(parentFragmentManager, "AddFoodDialog")
-        }
 
         viewModel.allActiveItems.observe(viewLifecycleOwner) { items ->
             adapter.submitList(items)

@@ -1,8 +1,11 @@
 package com.example.foodguard.adapter
 
+import android.graphics.BitmapFactory
+import android.net.Uri
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.ImageView
 import android.widget.TextView
 import androidx.core.content.ContextCompat
 import androidx.recyclerview.widget.DiffUtil
@@ -11,6 +14,7 @@ import androidx.recyclerview.widget.RecyclerView
 import com.example.foodguard.R
 import com.example.foodguard.data.FoodItem
 import com.google.android.material.card.MaterialCardView
+import java.io.File
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -36,6 +40,7 @@ class FoodAdapter(private val onItemClick: (FoodItem) -> Unit) :
         private val tvStorage: TextView = itemView.findViewById(R.id.tvStorageInfo)
         private val tvDate: TextView = itemView.findViewById(R.id.tvExpirationDate)
         private val tvDays: TextView = itemView.findViewById(R.id.tvDaysLeft)
+        private val ivIcon: ImageView = itemView.findViewById(R.id.ivFoodIcon)
         private val cardDays: MaterialCardView = itemView.findViewById(R.id.cardDays)
         private val dateFormat = SimpleDateFormat("dd/MM/yyyy", Locale.getDefault())
 
@@ -44,6 +49,30 @@ class FoodAdapter(private val onItemClick: (FoodItem) -> Unit) :
             tvStorage.text = "${item.storageLocation ?: "Geladeira"} • ${item.quantity ?: ""}"
             tvDate.text = dateFormat.format(Date(item.expirationDate))
             
+            // Lógica de carregamento de imagem corrigida
+            if (!item.imageUri.isNullOrEmpty()) {
+                try {
+                    val uri = Uri.parse(item.imageUri)
+                    ivIcon.clearColorFilter()
+                    ivIcon.scaleType = ImageView.ScaleType.CENTER_CROP
+                    
+                    if (uri.scheme == "file") {
+                        val bitmap = BitmapFactory.decodeFile(uri.path)
+                        if (bitmap != null) {
+                            ivIcon.setImageBitmap(bitmap)
+                        } else {
+                            throw Exception("Falha ao decodificar bitmap")
+                        }
+                    } else {
+                        ivIcon.setImageURI(uri)
+                    }
+                } catch (e: Exception) {
+                    setDefaultIcon()
+                }
+            } else {
+                setDefaultIcon()
+            }
+
             val daysLeft = getDaysLeft(item.expirationDate)
             tvDays.text = when {
                 daysLeft < 0 -> "Vencido"
@@ -51,7 +80,6 @@ class FoodAdapter(private val onItemClick: (FoodItem) -> Unit) :
                 else -> "$daysLeft dias"
             }
 
-            // Status color logic
             when {
                 daysLeft < 0 -> {
                     cardDays.setCardBackgroundColor(ContextCompat.getColor(itemView.context, R.color.status_red))
@@ -70,6 +98,12 @@ class FoodAdapter(private val onItemClick: (FoodItem) -> Unit) :
             itemView.setOnClickListener {
                 onItemClick(item)
             }
+        }
+
+        private fun setDefaultIcon() {
+            ivIcon.setImageResource(android.R.drawable.ic_menu_gallery)
+            ivIcon.scaleType = ImageView.ScaleType.CENTER_INSIDE
+            ivIcon.setColorFilter(ContextCompat.getColor(itemView.context, R.color.text_gray))
         }
 
         private fun getDaysLeft(expirationTime: Long): Long {
