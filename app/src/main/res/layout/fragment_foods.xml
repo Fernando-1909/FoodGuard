@@ -175,12 +175,13 @@
                         </LinearLayout>
 
                         <TextView
+                            android:id="@+id/tvEstimatedSavings"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:layout_marginTop="12dp"
-                            android:text="R$ 0"
+                            android:text="R$ 0,00"
                             android:textColor="@color/primary_black"
-                            android:textSize="26sp"
+                            android:textSize="24sp"
                             android:textStyle="bold" />
 
                         <TextView

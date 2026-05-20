@@ -23,6 +23,7 @@ import com.google.android.material.appbar.MaterialToolbar
 import com.google.android.material.button.MaterialButton
 import com.google.android.material.textfield.TextInputEditText
 import kotlinx.coroutines.launch
+import java.text.NumberFormat
 import java.text.SimpleDateFormat
 import java.util.*
 import java.util.concurrent.TimeUnit
@@ -32,6 +33,7 @@ class FoodDetailActivity : AppCompatActivity() {
     private val viewModel: FoodViewModel by viewModels()
     private val dateFormat = SimpleDateFormat("dd/MM/yyyy", Locale.getDefault())
     private val dateTimeFormat = SimpleDateFormat("dd/MM/yyyy HH:mm", Locale.getDefault())
+    private val currencyFormat = NumberFormat.getCurrencyInstance(Locale("pt", "BR"))
     private lateinit var currentFoodItem: FoodItem
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -151,6 +153,13 @@ class FoodDetailActivity : AppCompatActivity() {
         layoutQuantity.findViewById<TextView>(R.id.tvInfoLabel).text = "Quantidade"
         layoutQuantity.findViewById<TextView>(R.id.tvInfoValue).text = item.quantity ?: "Não informada"
         layoutQuantity.findViewById<ImageView>(R.id.ivInfoIcon).setImageResource(android.R.drawable.ic_menu_sort_by_size)
+
+        val layoutPrice = findViewById<View>(R.id.layoutPrice)
+        if (layoutPrice != null) {
+            layoutPrice.findViewById<TextView>(R.id.tvInfoLabel).text = "Preço"
+            layoutPrice.findViewById<TextView>(R.id.tvInfoValue).text = item.price?.let { currencyFormat.format(it) } ?: "Não informado"
+            layoutPrice.findViewById<ImageView>(R.id.ivInfoIcon).setImageResource(android.R.drawable.ic_menu_agenda)
+        }
 
         val layoutLocation = findViewById<View>(R.id.layoutLocation)
         layoutLocation.findViewById<TextView>(R.id.tvInfoLabel).text = "Local de armazenamento"

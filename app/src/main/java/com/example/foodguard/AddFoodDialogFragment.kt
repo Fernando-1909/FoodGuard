@@ -2,10 +2,11 @@ package com.example.foodguard
 
 import android.app.AlertDialog
 import android.app.DatePickerDialog
-import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.net.Uri
 import android.os.Bundle
+import android.text.Editable
+import android.text.TextWatcher
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -20,6 +21,7 @@ import com.google.android.material.imageview.ShapeableImageView
 import com.google.android.material.textfield.TextInputEditText
 import java.io.File
 import java.io.FileOutputStream
+import java.text.NumberFormat
 import java.text.SimpleDateFormat
 import java.util.*
 
@@ -28,6 +30,7 @@ class AddFoodDialogFragment : DialogFragment() {
     private val viewModel: FoodViewModel by activityViewModels()
     private var calendar = Calendar.getInstance()
     private val dateFormatter = SimpleDateFormat("dd/MM/yyyy", Locale.getDefault())
+    private val currencyFormat = NumberFormat.getCurrencyInstance(Locale("pt", "BR"))
     private var foodToEdit: FoodItem? = null
     
     private var currentImageUri: Uri? = null
@@ -124,6 +127,7 @@ class AddFoodDialogFragment : DialogFragment() {
         val etName = view.findViewById<TextInputEditText>(R.id.etFoodName)
         val etCategory = view.findViewById<AutoCompleteTextView>(R.id.etCategory)
         val etQuantity = view.findViewById<TextInputEditText>(R.id.etQuantity)
+        val etPrice = view.findViewById<TextInputEditText>(R.id.etPrice)
         val etDate = view.findViewById<TextInputEditText>(R.id.etExpirationDate)
         val btnAdd = view.findViewById<Button>(R.id.btnAdd)
         ivFoodPhoto = view.findViewById(R.id.ivFoodPhoto)
@@ -137,11 +141,44 @@ class AddFoodDialogFragment : DialogFragment() {
 
         btnSelectPhoto.setOnClickListener { showImagePickerOptions() }
 
+        // Máscara de preço estilo Banco
+        etPrice?.addTextChangedListener(object : TextWatcher {
+            private var current = ""
+            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
+            override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {
+                if (s.toString() != current) {
+                    etPrice.removeTextChangedListener(this)
+
+                    val cleanString = s.toString().replace("[R$,.\\s]".toRegex(), "")
+                    if (cleanString.isNotEmpty()) {
+                        val parsed = cleanString.toDouble()
+                        val formatted = currencyFormat.format(parsed / 100)
+                        current = formatted
+                        etPrice.setText(formatted)
+                        etPrice.setSelection(formatted.length)
+                    } else {
+                        current = ""
+                        etPrice.setText("")
+                    }
+
+                    etPrice.addTextChangedListener(this)
+                }
+            }
+            override fun afterTextChanged(s: Editable?) {}
+        })
+
         foodToEdit?.let { food ->
             tvTitle?.text = "Editar Alimento"
             etName.setText(food.name)
             etCategory.setText(food.category, false)
             etQuantity.setText(food.quantity)
+            
+            // Formatar preço inicial se existir
+            food.price?.let {
+                val formatted = currencyFormat.format(it)
+                etPrice.setText(formatted)
+            }
+            
             calendar.timeInMillis = food.expirationDate
             etDate.setText(dateFormatter.format(calendar.time))
             btnAdd.text = "Atualizar"
@@ -156,6 +193,7 @@ class AddFoodDialogFragment : DialogFragment() {
             val name = etName.text.toString().trim()
             val category = etCategory.text.toString()
             val quantity = etQuantity.text.toString()
+            val priceStr = etPrice.text.toString()
             val dateStr = etDate.text.toString()
 
             if (name.isBlank() || dateStr.isBlank()) {
@@ -164,10 +202,14 @@ class AddFoodDialogFragment : DialogFragment() {
                 return@setOnClickListener
             }
 
+            // Converter R$ 1.234,56 -> 1234.56
+            val price = priceStr.replace("[R$\\s.]".toRegex(), "").replace(",", ".").toDoubleOrNull()
+
             val updatedFood = foodToEdit?.copy(
                 name = name,
                 category = category,
                 quantity = quantity,
+                price = price,
                 expirationDate = calendar.timeInMillis,
                 imageUri = currentImageUri?.toString()
             ) ?: FoodItem(
@@ -175,6 +217,7 @@ class AddFoodDialogFragment : DialogFragment() {
                 name = name,
                 category = category,
                 quantity = quantity,
+                price = price,
                 expirationDate = calendar.timeInMillis,
                 imageUri = currentImageUri?.toString()
             )

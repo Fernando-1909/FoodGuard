@@ -144,6 +144,10 @@
                     layout="@layout/item_detail_info" />
 
                 <include
+                    android:id="@+id/layoutPrice"
+                    layout="@layout/item_detail_info" />
+
+                <include
                     android:id="@+id/layoutLocation"
                     layout="@layout/item_detail_info" />
 

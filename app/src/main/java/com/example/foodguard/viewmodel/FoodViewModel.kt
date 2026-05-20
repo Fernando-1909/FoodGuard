@@ -11,6 +11,7 @@ import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import java.util.Calendar
 
@@ -59,6 +60,29 @@ class FoodViewModel(application: Application) : AndroidViewModel(application) {
         repository.getExpiredCount(userId, System.currentTimeMillis())
     }.asLiveData()
 
+    /**
+     * Cálculo da Economia Estimada do Mês:
+     * Fórmula: Soma dos preços de todos os itens marcados como 'consumidos' cuja data de consumo 
+     * esteja dentro do mês atual (do primeiro ao último dia).
+     * Isso representa o valor financeiro dos produtos que foram aproveitados em vez de desperdiçados.
+     */
+    @OptIn(ExperimentalCoroutinesApi::class)
+    val monthlySavings: LiveData<Double> = _currentUserId.flatMapLatest { userId ->
+        val calendar = Calendar.getInstance()
+        calendar.set(Calendar.DAY_OF_MONTH, 1)
+        calendar.set(Calendar.HOUR_OF_DAY, 0)
+        calendar.set(Calendar.MINUTE, 0)
+        calendar.set(Calendar.SECOND, 0)
+        val startOfMonth = calendar.timeInMillis
+        
+        calendar.add(Calendar.MONTH, 1)
+        val endOfMonth = calendar.timeInMillis
+        
+        repository.getConsumedItemsInRange(userId, startOfMonth, endOfMonth).map { items ->
+            items.sumOf { it.price ?: 0.0 }
+        }
+    }.asLiveData()
+
     init {
         val foodDao = FoodDatabase.getDatabase(application).foodDao()
         repository = FoodRepository(foodDao)
@@ -93,6 +117,6 @@ class FoodViewModel(application: Application) : AndroidViewModel(application) {
     }
 
     fun markAsConsumed(foodItemId: Long) = viewModelScope.launch(Dispatchers.IO) {
-        repository.markAsConsumed(foodItemId)
+        repository.markAsConsumed(foodItemId, System.currentTimeMillis())
     }
 }

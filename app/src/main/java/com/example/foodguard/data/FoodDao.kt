@@ -17,8 +17,8 @@ interface FoodDao {
     @Delete
     suspend fun delete(foodItem: FoodItem)
 
-    @Query("UPDATE food_items SET isConsumed = 1 WHERE id = :foodItemId")
-    suspend fun markAsConsumed(foodItemId: Long)
+    @Query("UPDATE food_items SET isConsumed = 1, consumedDate = :consumedDate WHERE id = :foodItemId")
+    suspend fun markAsConsumed(foodItemId: Long, consumedDate: Long)
 
     @Query("SELECT * FROM food_items WHERE userId = :userId AND isConsumed = 0 AND expirationDate < :currentTime ORDER BY expirationDate ASC")
     fun getExpiredItems(userId: String, currentTime: Long): Flow<List<FoodItem>>
@@ -32,9 +32,15 @@ interface FoodDao {
     @Query("SELECT COUNT(*) FROM food_items WHERE userId = :userId AND isConsumed = 0 AND expirationDate < :currentTime")
     fun getExpiredCount(userId: String, currentTime: Long): Flow<Int>
     
-    @Query("SELECT * FROM food_items WHERE userId = :userId AND isConsumed = 1 ORDER BY id DESC")
+    @Query("SELECT * FROM food_items WHERE userId = :userId AND isConsumed = 1 ORDER BY consumedDate DESC")
     fun getConsumedItems(userId: String): Flow<List<FoodItem>>
+
+    @Query("SELECT * FROM food_items WHERE userId = :userId AND isConsumed = 1 AND consumedDate >= :startTime AND consumedDate <= :endTime")
+    fun getConsumedItemsInRange(userId: String, startTime: Long, endTime: Long): Flow<List<FoodItem>>
 
     @Query("SELECT * FROM food_items WHERE userId = :userId AND isConsumed = 0 AND reminderTimestamp IS NOT NULL ORDER BY reminderTimestamp ASC")
     fun getItemsWithReminders(userId: String): Flow<List<FoodItem>>
+
+    @Query("DELETE FROM food_items")
+    suspend fun deleteAll()
 }

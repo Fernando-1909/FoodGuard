@@ -18,8 +18,8 @@ class FoodRepository(private val foodDao: FoodDao) {
         foodDao.delete(foodItem)
     }
 
-    suspend fun markAsConsumed(foodItemId: Long) {
-        foodDao.markAsConsumed(foodItemId)
+    suspend fun markAsConsumed(foodItemId: Long, consumedDate: Long) {
+        foodDao.markAsConsumed(foodItemId, consumedDate)
     }
 
     fun getNearExpirationItems(userId: String, currentTime: Long, threshold: Long): Flow<List<FoodItem>> {
@@ -35,6 +35,10 @@ class FoodRepository(private val foodDao: FoodDao) {
     fun getExpiredCount(userId: String, currentTime: Long): Flow<Int> = foodDao.getExpiredCount(userId, currentTime)
     
     fun getConsumedItems(userId: String): Flow<List<FoodItem>> = foodDao.getConsumedItems(userId)
+
+    fun getConsumedItemsInRange(userId: String, startTime: Long, endTime: Long): Flow<List<FoodItem>> {
+        return foodDao.getConsumedItemsInRange(userId, startTime, endTime)
+    }
 
     fun getItemsWithReminders(userId: String): Flow<List<FoodItem>> = foodDao.getItemsWithReminders(userId)
 }
