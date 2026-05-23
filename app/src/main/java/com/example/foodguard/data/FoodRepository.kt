@@ -22,6 +22,10 @@ class FoodRepository(private val foodDao: FoodDao) {
         foodDao.markAsConsumed(foodItemId, consumedDate)
     }
 
+    suspend fun markAsDiscarded(foodItemId: Long, discardedDate: Long) {
+        foodDao.markAsDiscarded(foodItemId, discardedDate)
+    }
+
     fun getNearExpirationItems(userId: String, currentTime: Long, threshold: Long): Flow<List<FoodItem>> {
         return foodDao.getNearExpirationItems(userId, currentTime, threshold)
     }
@@ -36,9 +40,29 @@ class FoodRepository(private val foodDao: FoodDao) {
     
     fun getConsumedItems(userId: String): Flow<List<FoodItem>> = foodDao.getConsumedItems(userId)
 
+    fun getPurchasedItemsInRange(userId: String, startTime: Long, endTime: Long): Flow<List<FoodItem>> {
+        return foodDao.getPurchasedItemsInRange(userId, startTime, endTime)
+    }
+
     fun getConsumedItemsInRange(userId: String, startTime: Long, endTime: Long): Flow<List<FoodItem>> {
         return foodDao.getConsumedItemsInRange(userId, startTime, endTime)
     }
 
+    fun getConsumedOnTimeInRange(userId: String, startTime: Long, endTime: Long): Flow<List<FoodItem>> {
+        return foodDao.getConsumedOnTimeInRange(userId, startTime, endTime)
+    }
+
+    fun getActiveNotExpired(userId: String, currentTime: Long): Flow<List<FoodItem>> {
+        return foodDao.getActiveNotExpired(userId, currentTime)
+    }
+
+    fun getExpiredItemsInRange(userId: String, startTime: Long, endTime: Long, currentTime: Long): Flow<List<FoodItem>> {
+        return foodDao.getExpiredItemsInRange(userId, startTime, endTime, currentTime)
+    }
+
     fun getItemsWithReminders(userId: String): Flow<List<FoodItem>> = foodDao.getItemsWithReminders(userId)
+
+    suspend fun deleteAll() {
+        foodDao.deleteAll()
+    }
 }

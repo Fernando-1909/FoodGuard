@@ -8,10 +8,8 @@ import com.example.foodguard.data.FoodRepository
 import com.example.foodguard.data.UserManager
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.combine
-import kotlinx.coroutines.flow.flatMapLatest
-import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import java.util.Calendar
 
@@ -21,7 +19,7 @@ class FoodViewModel(application: Application) : AndroidViewModel(application) {
     private val userManager = UserManager(application)
     
     private val _currentUserId = MutableStateFlow(userManager.getUserEmail() ?: "")
-    private val _notificationFilter = MutableStateFlow(0) // 0: All, 1: Near, 2: Expired, 3: Reminders
+    private val _notificationFilter = MutableStateFlow(0) // 0: All, 1: Near, 2: Expired
 
     @OptIn(ExperimentalCoroutinesApi::class)
     val allActiveItems: LiveData<List<FoodItem>> = _currentUserId.flatMapLatest { userId ->
@@ -40,7 +38,6 @@ class FoodViewModel(application: Application) : AndroidViewModel(application) {
                 repository.getNearExpirationItems(userId, currentTime, cal.timeInMillis)
             }
             2 -> repository.getExpiredItems(userId, currentTime)
-            3 -> repository.getItemsWithReminders(userId)
             else -> repository.getAllActiveItems(userId)
         }
     }.asLiveData()
@@ -61,32 +58,55 @@ class FoodViewModel(application: Application) : AndroidViewModel(application) {
     }.asLiveData()
 
     /**
-     * Cálculo da Economia Estimada do Mês:
-     * Fórmula: Soma dos preços de todos os itens marcados como 'consumidos' cuja data de consumo 
-     * esteja dentro do mês atual (do primeiro ao último dia).
-     * Isso representa o valor financeiro dos produtos que foram aproveitados em vez de desperdiçados.
+     * FÓRMULA DE ECONOMIA ESTIMADA DO MÊS:
+     * Economia = (Valor dos itens consumidos no prazo ou em estoque) - (Valor dos itens vencidos ou descartados).
+     * 
+     * Se um item vence ou é descartado, seu valor é SUBTRAÍDO da economia total.
      */
     @OptIn(ExperimentalCoroutinesApi::class)
     val monthlySavings: LiveData<Double> = _currentUserId.flatMapLatest { userId ->
         val calendar = Calendar.getInstance()
+        
         calendar.set(Calendar.DAY_OF_MONTH, 1)
         calendar.set(Calendar.HOUR_OF_DAY, 0)
         calendar.set(Calendar.MINUTE, 0)
         calendar.set(Calendar.SECOND, 0)
+        calendar.set(Calendar.MILLISECOND, 0)
         val startOfMonth = calendar.timeInMillis
         
         calendar.add(Calendar.MONTH, 1)
+        calendar.add(Calendar.MILLISECOND, -1)
         val endOfMonth = calendar.timeInMillis
         
-        repository.getConsumedItemsInRange(userId, startOfMonth, endOfMonth).map { items ->
-            items.sumOf { it.price ?: 0.0 }
+        // Emite o tempo atual a cada minuto para reavaliar vencimentos em tempo real
+        val ticker = flow {
+            while (true) {
+                emit(System.currentTimeMillis())
+                delay(60000) 
+            }
+        }.onStart { emit(System.currentTimeMillis()) }
+
+        ticker.flatMapLatest { now ->
+            repository.getPurchasedItemsInRange(userId, startOfMonth, endOfMonth).map { items ->
+                items.sumOf { item ->
+                    val isExpired = item.expirationDate < now
+                    val consumedOnTime = item.isConsumed && (item.consumedDate ?: 0L) <= item.expirationDate
+                    val activeAndNotExpired = !item.isConsumed && !item.isDiscarded && !isExpired
+                    
+                    val price = item.price ?: 0.0
+                    when {
+                        consumedOnTime || activeAndNotExpired -> price
+                        isExpired || item.isDiscarded -> -price
+                        else -> 0.0
+                    }
+                }
+            }
         }
     }.asLiveData()
 
     init {
         val foodDao = FoodDatabase.getDatabase(application).foodDao()
         repository = FoodRepository(foodDao)
-        // Refresh user ID on init to be sure
         _currentUserId.value = userManager.getUserEmail() ?: ""
     }
 
@@ -118,5 +138,13 @@ class FoodViewModel(application: Application) : AndroidViewModel(application) {
 
     fun markAsConsumed(foodItemId: Long) = viewModelScope.launch(Dispatchers.IO) {
         repository.markAsConsumed(foodItemId, System.currentTimeMillis())
+    }
+
+    fun markAsDiscarded(foodItemId: Long) = viewModelScope.launch(Dispatchers.IO) {
+        repository.markAsDiscarded(foodItemId, System.currentTimeMillis())
+    }
+
+    fun clearAllData() = viewModelScope.launch(Dispatchers.IO) {
+        repository.deleteAll()
     }
 }

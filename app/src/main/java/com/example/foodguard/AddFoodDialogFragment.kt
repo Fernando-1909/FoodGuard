@@ -141,7 +141,6 @@ class AddFoodDialogFragment : DialogFragment() {
 
         btnSelectPhoto.setOnClickListener { showImagePickerOptions() }
 
-        // Máscara de preço estilo Banco
         etPrice?.addTextChangedListener(object : TextWatcher {
             private var current = ""
             override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
@@ -173,7 +172,6 @@ class AddFoodDialogFragment : DialogFragment() {
             etCategory.setText(food.category, false)
             etQuantity.setText(food.quantity)
             
-            // Formatar preço inicial se existir
             food.price?.let {
                 val formatted = currencyFormat.format(it)
                 etPrice.setText(formatted)
@@ -202,7 +200,6 @@ class AddFoodDialogFragment : DialogFragment() {
                 return@setOnClickListener
             }
 
-            // Converter R$ 1.234,56 -> 1234.56
             val price = priceStr.replace("[R$\\s.]".toRegex(), "").replace(",", ".").toDoubleOrNull()
 
             val updatedFood = foodToEdit?.copy(
@@ -265,7 +262,15 @@ class AddFoodDialogFragment : DialogFragment() {
         val datePickerDialog = DatePickerDialog(
             requireContext(),
             { _, year, month, dayOfMonth ->
-                calendar.set(year, month, dayOfMonth)
+                calendar.set(Calendar.YEAR, year)
+                calendar.set(Calendar.MONTH, month)
+                calendar.set(Calendar.DAY_OF_MONTH, dayOfMonth)
+                // Define para o final do dia para evitar vencimento precoce
+                calendar.set(Calendar.HOUR_OF_DAY, 23)
+                calendar.set(Calendar.MINUTE, 59)
+                calendar.set(Calendar.SECOND, 59)
+                calendar.set(Calendar.MILLISECOND, 999)
+
                 etDate.setText(dateFormatter.format(calendar.time))
             },
             calendar.get(Calendar.YEAR),

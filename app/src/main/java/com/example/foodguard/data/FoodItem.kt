@@ -15,11 +15,13 @@ data class FoodItem(
     val expirationDate: Long,
     val purchaseDate: Long = System.currentTimeMillis(),
     val consumedDate: Long? = null,
+    val discardedDate: Long? = null,
     val category: String? = null,
     val quantity: String? = null,
     val price: Double? = null,
     val storageLocation: String? = "Geladeira",
     val isConsumed: Boolean = false,
+    val isDiscarded: Boolean = false,
     val conservationTips: String? = null,
     val reminderTimestamp: Long? = null,
     val imageUri: String? = null
