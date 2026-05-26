@@ -202,7 +202,7 @@ class FoodDetailActivity : AppCompatActivity() {
         }
 
         findViewById<MaterialButton>(R.id.btnDiscard).setOnClickListener {
-            viewModel.delete(currentFoodItem)
+            viewModel.markAsDiscarded(currentFoodItem.id)
             Toast.makeText(this, "Item descartado!", Toast.LENGTH_SHORT).show()
             finish()
         }

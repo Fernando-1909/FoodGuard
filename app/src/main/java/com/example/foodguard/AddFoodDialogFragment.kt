@@ -44,6 +44,9 @@ class AddFoodDialogFragment : DialogFragment() {
         "Massas", "Carboidratos", "Outros"
     )
 
+    private val storageLocations = arrayOf("Geladeira", "Freezer", "Despensa")
+    private val units = arrayOf("un", "g", "kg", "ml", "L")
+
     private val getContent = registerForActivityResult(ActivityResultContracts.GetContent()) { uri: Uri? ->
         uri?.let {
             val savedUri = saveImageLocally(it)
@@ -126,7 +129,9 @@ class AddFoodDialogFragment : DialogFragment() {
         val tvTitle = view.findViewById<TextView>(R.id.tvDialogTitle)
         val etName = view.findViewById<TextInputEditText>(R.id.etFoodName)
         val etCategory = view.findViewById<AutoCompleteTextView>(R.id.etCategory)
+        val etStorageLocation = view.findViewById<AutoCompleteTextView>(R.id.etStorageLocation)
         val etQuantity = view.findViewById<TextInputEditText>(R.id.etQuantity)
+        val etUnit = view.findViewById<AutoCompleteTextView>(R.id.etUnit)
         val etPrice = view.findViewById<TextInputEditText>(R.id.etPrice)
         val etDate = view.findViewById<TextInputEditText>(R.id.etExpirationDate)
         val btnAdd = view.findViewById<Button>(R.id.btnAdd)
@@ -135,6 +140,15 @@ class AddFoodDialogFragment : DialogFragment() {
 
         val adapter = ArrayAdapter(requireContext(), android.R.layout.simple_dropdown_item_1line, categories)
         etCategory.setAdapter(adapter)
+
+        val storageAdapter = ArrayAdapter(requireContext(), android.R.layout.simple_dropdown_item_1line, storageLocations)
+        etStorageLocation.setAdapter(storageAdapter)
+
+        val unitAdapter = ArrayAdapter(requireContext(), android.R.layout.simple_dropdown_item_1line, units)
+        etUnit.setAdapter(unitAdapter)
+        if (foodToEdit == null) {
+            etUnit.setText(units[0], false)
+        }
 
         etDate.setOnClickListener { showDatePicker(etDate) }
         etDate.isFocusable = false
@@ -170,7 +184,18 @@ class AddFoodDialogFragment : DialogFragment() {
             tvTitle?.text = "Editar Alimento"
             etName.setText(food.name)
             etCategory.setText(food.category, false)
-            etQuantity.setText(food.quantity)
+            etStorageLocation.setText(food.storageLocation, false)
+            
+            // Extract numeric value and unit if possible
+            val quantityValue = food.quantity?.filter { it.isDigit() || it == '.' || it == ',' }
+            val unitValue = food.quantity?.filter { it.isLetter() }
+            
+            etQuantity.setText(quantityValue)
+            if (!unitValue.isNullOrBlank() && units.contains(unitValue)) {
+                etUnit.setText(unitValue, false)
+            } else {
+                etUnit.setText(units[0], false)
+            }
             
             food.price?.let {
                 val formatted = currencyFormat.format(it)
@@ -190,7 +215,10 @@ class AddFoodDialogFragment : DialogFragment() {
         btnAdd.setOnClickListener {
             val name = etName.text.toString().trim()
             val category = etCategory.text.toString()
-            val quantity = etQuantity.text.toString()
+            val storageLocation = etStorageLocation.text.toString()
+            val quantityAmount = etQuantity.text.toString()
+            val unit = etUnit.text.toString()
+            val quantity = if (quantityAmount.isNotBlank()) "$quantityAmount$unit" else ""
             val priceStr = etPrice.text.toString()
             val dateStr = etDate.text.toString()
 
@@ -205,6 +233,7 @@ class AddFoodDialogFragment : DialogFragment() {
             val updatedFood = foodToEdit?.copy(
                 name = name,
                 category = category,
+                storageLocation = storageLocation,
                 quantity = quantity,
                 price = price,
                 expirationDate = calendar.timeInMillis,
@@ -213,6 +242,7 @@ class AddFoodDialogFragment : DialogFragment() {
                 userId = viewModel.getCurrentUserId(),
                 name = name,
                 category = category,
+                storageLocation = storageLocation,
                 quantity = quantity,
                 price = price,
                 expirationDate = calendar.timeInMillis,
