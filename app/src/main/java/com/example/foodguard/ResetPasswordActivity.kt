@@ -1,6 +1,5 @@
 package com.example.foodguard
 
-import android.content.Intent
 import android.os.Bundle
 import android.widget.ImageButton
 import android.widget.Toast
@@ -10,20 +9,16 @@ import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.lifecycle.lifecycleScope
 import com.example.foodguard.data.FoodDatabase
-import com.example.foodguard.data.UserManager
 import com.google.android.material.button.MaterialButton
 import com.google.android.material.textfield.TextInputEditText
 import kotlinx.coroutines.launch
 
-class LoginFormActivity : AppCompatActivity() {
-    private lateinit var userManager: UserManager
+class ResetPasswordActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
-        setContentView(R.layout.activity_login_form)
-
-        userManager = UserManager(this)
+        setContentView(R.layout.activity_reset_password)
 
         ViewCompat.setOnApplyWindowInsetsListener(findViewById(android.R.id.content)) { v, insets ->
             val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
@@ -35,32 +30,32 @@ class LoginFormActivity : AppCompatActivity() {
             finish()
         }
 
-        findViewById<android.widget.TextView>(R.id.tvForgotPassword).setOnClickListener {
-            startActivity(Intent(this, ResetPasswordActivity::class.java))
-        }
-
-        findViewById<MaterialButton>(R.id.btnLoginSubmit).setOnClickListener {
+        findViewById<MaterialButton>(R.id.btnResetPassword).setOnClickListener {
             val email = findViewById<TextInputEditText>(R.id.etEmail).text.toString().trim().lowercase()
-            val password = findViewById<TextInputEditText>(R.id.etPassword).text.toString()
+            val newPassword = findViewById<TextInputEditText>(R.id.etNewPassword).text.toString()
+            val confirmPassword = findViewById<TextInputEditText>(R.id.etConfirmPassword).text.toString()
 
-            if (email.isEmpty() || password.isEmpty()) {
+            if (email.isEmpty() || newPassword.isEmpty() || confirmPassword.isEmpty()) {
                 Toast.makeText(this, "Preencha todos os campos", Toast.LENGTH_SHORT).show()
                 return@setOnClickListener
             }
 
+            if (newPassword != confirmPassword) {
+                Toast.makeText(this, "As senhas não coincidem", Toast.LENGTH_SHORT).show()
+                return@setOnClickListener
+            }
+
             lifecycleScope.launch {
-                val userDao = FoodDatabase.getDatabase(this@LoginFormActivity).userDao()
+                val userDao = FoodDatabase.getDatabase(this@ResetPasswordActivity).userDao()
                 val user = userDao.getUserByEmail(email)
 
-                if (user != null && user.password == password) {
-                    userManager.setLoggedInUser(email)
-                    
-                    val intent = Intent(this@LoginFormActivity, MainActivity::class.java)
-                    intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
-                    startActivity(intent)
+                if (user != null) {
+                    val updatedUser = user.copy(password = newPassword)
+                    userDao.update(updatedUser)
+                    Toast.makeText(this@ResetPasswordActivity, "Senha redefinida com sucesso", Toast.LENGTH_SHORT).show()
                     finish()
                 } else {
-                    Toast.makeText(this@LoginFormActivity, "E-mail ou senha incorretos", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(this@ResetPasswordActivity, "Usuário não encontrado", Toast.LENGTH_SHORT).show()
                 }
             }
         }

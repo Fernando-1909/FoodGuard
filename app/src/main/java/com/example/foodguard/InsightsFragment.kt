@@ -39,9 +39,29 @@ class InsightsFragment : Fragment() {
         val tvSavings = view.findViewById<TextView>(R.id.tvInsightsSavingsValue)
         val layoutWastedCategories = view.findViewById<LinearLayout>(R.id.layoutWastedCategories)
         val chipGroupPeriod = view.findViewById<ChipGroup>(R.id.chipGroupPeriod)
+        
+        val tvGoalTitle = view.findViewById<TextView>(R.id.tvGoalTitle)
+        val tvGoalProgress = view.findViewById<TextView>(R.id.tvGoalProgress)
+        val pbGoal = view.findViewById<ProgressBar>(R.id.pbGoal)
+        val tvGoalDescription = view.findViewById<TextView>(R.id.tvGoalDescription)
+        val btnEditGoal = view.findViewById<com.google.android.material.button.MaterialButton>(R.id.btnEditGoal)
 
-        chipGroupPeriod.setOnCheckedStateChangeListener { _, checkedIds ->
-            val period = when (checkedIds.firstOrNull()) {
+        chipGroupPeriod.setOnCheckedStateChangeListener { group, checkedIds ->
+            val checkedId = checkedIds.firstOrNull()
+
+            // Update visual state for all chips
+            for (i in 0 until group.childCount) {
+                val chip = group.getChildAt(i) as com.google.android.material.chip.Chip
+                if (chip.id == checkedId) {
+                    chip.setChipBackgroundColorResource(R.color.badge_black)
+                    chip.setTextColor(ContextCompat.getColor(requireContext(), R.color.white))
+                } else {
+                    chip.setChipBackgroundColorResource(R.color.background_gray)
+                    chip.setTextColor(ContextCompat.getColor(requireContext(), R.color.primary_black))
+                }
+            }
+
+            val period = when (checkedId) {
                 R.id.chipWeek -> "week"
                 R.id.chipMonth -> "month"
                 R.id.chipThreeMonths -> "three_months"
@@ -49,50 +69,6 @@ class InsightsFragment : Fragment() {
             }
             viewModel.setFilterPeriod(period)
         }
-
-        // Observe data from ViewModel
-        viewModel.insightData.observe(viewLifecycleOwner) { stats ->
-            val consumed = stats.consumedCount
-            val expired = stats.expiredCount
-            val total = consumed + expired
-
-            tvConsumedValue.text = consumed.toString()
-            tvWastedValue.text = expired.toString()
-            tvSavings.text = currencyFormat.format(stats.estimatedSavings)
-
-            if (total > 0) {
-                val efficiency = (consumed.toDouble() / total * 100).toInt()
-                tvEfficiency.text = "$efficiency%"
-
-                // Simple bar scaling logic
-                val maxHeight = 100 // dp
-                val consumedHeight = (consumed.toDouble() / total * maxHeight).toInt().coerceAtLeast(20)
-                val wastedHeight = (expired.toDouble() / total * maxHeight).toInt().coerceAtLeast(20)
-
-                val consumedParams = barConsumed.layoutParams
-                consumedParams.height = (consumedHeight * resources.displayMetrics.density).toInt()
-                barConsumed.layoutParams = consumedParams
-
-                val wastedParams = barWasted.layoutParams
-                wastedParams.height = (wastedHeight * resources.displayMetrics.density).toInt()
-                barWasted.layoutParams = wastedParams
-            } else {
-                tvEfficiency.text = "100%"
-                
-                // Reset bars
-                val density = resources.displayMetrics.density
-                barConsumed.layoutParams.height = (40 * density).toInt()
-                barWasted.layoutParams.height = (40 * density).toInt()
-                barConsumed.requestLayout()
-                barWasted.requestLayout()
-            }
-        }
-
-        val tvGoalTitle = view.findViewById<TextView>(R.id.tvGoalTitle)
-        val tvGoalProgress = view.findViewById<TextView>(R.id.tvGoalProgress)
-        val pbGoal = view.findViewById<ProgressBar>(R.id.pbGoal)
-        val tvGoalDescription = view.findViewById<TextView>(R.id.tvGoalDescription)
-        val btnEditGoal = view.findViewById<com.google.android.material.button.MaterialButton>(R.id.btnEditGoal)
 
         btnEditGoal.setOnClickListener {
             showEditGoalDialog()
@@ -156,6 +132,48 @@ class InsightsFragment : Fragment() {
             } else {
                 tvSavingsTrend.text = "${stats.savingsTrend}%"
                 tvSavingsTrend.setTextColor(ContextCompat.getColor(requireContext(), R.color.status_red))
+            }
+
+            // Update suggestions based on waste
+            updateSuggestions(view, stats.wastedCategories)
+        }
+    }
+
+    private fun updateSuggestions(view: View, categories: List<FoodViewModel.WastedCategory>) {
+        val ivIcon = view.findViewById<ImageView>(R.id.ivSuggestionIcon)
+        val tvTitle = view.findViewById<TextView>(R.id.tvSuggestionTitle)
+        val tvDescription = view.findViewById<TextView>(R.id.tvSuggestionDescription)
+
+        if (categories.isEmpty()) {
+            ivIcon.setImageResource(android.R.drawable.ic_dialog_info)
+            tvTitle.text = "Tudo sob controle!"
+            tvDescription.text = "Você não teve desperdícios significativos neste período. Continue assim!"
+            return
+        }
+
+        val topWaste = categories.first()
+        tvTitle.text = "Atenção com ${topWaste.name}"
+        
+        when (topWaste.name) {
+            "Carnes" -> {
+                ivIcon.setImageResource(R.drawable.ic_meat)
+                tvDescription.text = "Você desperdiçou ${topWaste.count} itens de carne. Tente congelar porções menores para aumentar a durabilidade."
+            }
+            "Frutas" -> {
+                ivIcon.setImageResource(R.drawable.ic_apple)
+                tvDescription.text = "Frutas representam seu maior desperdício (${topWaste.count} itens). Considere comprar frutas em diferentes estágios de maturação."
+            }
+            "Legumes", "Verduras" -> {
+                ivIcon.setImageResource(R.drawable.ic_carrot)
+                tvDescription.text = "Houve desperdício de ${topWaste.count} vegetais. Armazene-os em gavetas úmidas ou use potes herméticos."
+            }
+            "Padaria" -> {
+                ivIcon.setImageResource(R.drawable.ic_bread)
+                tvDescription.text = "Itens de padaria estragaram (${topWaste.count} itens). Pães podem ser congelados e aquecidos na hora do consumo."
+            }
+            else -> {
+                ivIcon.setImageResource(android.R.drawable.ic_dialog_info)
+                tvDescription.text = "A categoria ${topWaste.name} teve ${topWaste.count} itens desperdiçados. Reveja a frequência de compra desses itens."
             }
         }
     }

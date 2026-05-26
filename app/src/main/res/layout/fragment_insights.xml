@@ -316,6 +316,7 @@
             android:layout_marginBottom="16dp"/>
 
         <com.google.android.material.card.MaterialCardView
+            android:id="@+id/cardSuggestion"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             app:cardCornerRadius="16dp"
@@ -330,6 +331,7 @@
                 android:padding="16dp"
                 android:gravity="center_vertical">
                 <ImageView
+                    android:id="@+id/ivSuggestionIcon"
                     android:layout_width="40dp"
                     android:layout_height="40dp"
                     android:src="@android:drawable/ic_dialog_info"
@@ -342,14 +344,16 @@
                     android:orientation="vertical"
                     android:layout_marginStart="16dp">
                     <TextView
+                        android:id="@+id/tvSuggestionTitle"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="Compre menos vegetais"
+                        android:text="Tudo sob controle!"
                         android:textStyle="bold"/>
                     <TextView
+                        android:id="@+id/tvSuggestionDescription"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="Você desperdiçou 5 vegetais este mês. Considere comprar quantidades menores."
+                        android:text="Você não teve desperdícios significativos neste período. Continue assim!"
                         android:textSize="12sp"
                         android:textColor="@color/text_gray"
                         android:layout_marginTop="4dp"/>
