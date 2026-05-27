@@ -67,10 +67,10 @@ class FoodAdapter(private val onItemClick: (FoodItem) -> Unit) :
                         ivIcon.setImageURI(uri)
                     }
                 } catch (e: Exception) {
-                    setDefaultIcon()
+                    setDefaultIcon(item.category)
                 }
             } else {
-                setDefaultIcon()
+                setDefaultIcon(item.category)
             }
 
             val daysLeft = getDaysLeft(item.expirationDate)
@@ -100,10 +100,19 @@ class FoodAdapter(private val onItemClick: (FoodItem) -> Unit) :
             }
         }
 
-        private fun setDefaultIcon() {
-            ivIcon.setImageResource(android.R.drawable.ic_menu_gallery)
+        private fun setDefaultIcon(category: String?) {
+            val resId = when (category?.lowercase()) {
+                "frutas", "vegetais" -> R.drawable.ic_apple
+                "proteínas", "carne" -> R.drawable.ic_meat
+                "laticínios", "leite" -> R.drawable.ic_carrot // Fallback
+                "peixe", "frutos do mar" -> R.drawable.ic_fish
+                "padaria", "pães" -> R.drawable.ic_bread
+                "doces", "sobremesas" -> R.drawable.ic_cake
+                else -> R.drawable.ic_apple
+            }
+            ivIcon.setImageResource(resId)
             ivIcon.scaleType = ImageView.ScaleType.CENTER_INSIDE
-            ivIcon.setColorFilter(ContextCompat.getColor(itemView.context, R.color.text_gray))
+            ivIcon.setColorFilter(ContextCompat.getColor(itemView.context, R.color.primary_green))
         }
 
         private fun getDaysLeft(expirationTime: Long): Long {

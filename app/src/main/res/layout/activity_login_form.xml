@@ -16,7 +16,7 @@
         android:src="@android:drawable/ic_menu_revert"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        app:tint="@color/primary_black" />
+        app:tint="@color/primary_green" />
 
     <TextView
         android:id="@+id/tvTitle"
@@ -48,8 +48,8 @@
         android:layout_height="wrap_content"
         android:layout_marginTop="32dp"
         android:hint="E-mail"
-        app:boxStrokeColor="@color/primary_black"
-        app:hintTextColor="@color/primary_black"
+        app:boxStrokeColor="@color/primary_green"
+        app:hintTextColor="@color/primary_green"
         app:layout_constraintTop_toBottomOf="@id/tvSubtitle">
 
         <com.google.android.material.textfield.TextInputEditText
@@ -66,8 +66,8 @@
         android:layout_height="wrap_content"
         android:layout_marginTop="16dp"
         android:hint="Senha"
-        app:boxStrokeColor="@color/primary_black"
-        app:hintTextColor="@color/primary_black"
+        app:boxStrokeColor="@color/primary_green"
+        app:hintTextColor="@color/primary_green"
         app:layout_constraintTop_toBottomOf="@id/tilEmail"
         app:passwordToggleEnabled="true">
 
@@ -84,7 +84,7 @@
         android:layout_height="wrap_content"
         android:layout_marginTop="12dp"
         android:text="Esqueci minha senha"
-        android:textColor="@color/primary_black"
+        android:textColor="@color/primary_green"
         android:textSize="14sp"
         android:textStyle="bold"
         app:layout_constraintEnd_toEndOf="parent"
@@ -95,7 +95,7 @@
         android:layout_width="match_parent"
         android:layout_height="60dp"
         android:layout_marginTop="24dp"
-        android:backgroundTint="@color/primary_black"
+        android:backgroundTint="@color/primary_green"
         android:text="Entrar"
         android:textAllCaps="false"
         android:textSize="16sp"

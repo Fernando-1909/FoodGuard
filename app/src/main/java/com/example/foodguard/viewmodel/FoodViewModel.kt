@@ -21,6 +21,7 @@ class FoodViewModel(application: Application) : AndroidViewModel(application) {
     private val _currentUserId = MutableStateFlow(userManager.getUserEmail() ?: "")
     private val _notificationFilter = MutableStateFlow(0) // 0: All, 1: Near, 2: Expired
     private val _filterPeriod = MutableStateFlow("week") // week, month, three_months
+    val filterPeriod: StateFlow<String> = _filterPeriod.asStateFlow()
 
     private val _currentUser = MutableStateFlow<com.example.foodguard.data.User?>(null)
     val currentUser: StateFlow<com.example.foodguard.data.User?> = _currentUser.asStateFlow()
@@ -34,6 +35,11 @@ class FoodViewModel(application: Application) : AndroidViewModel(application) {
     @OptIn(ExperimentalCoroutinesApi::class)
     val allActiveItems: LiveData<List<FoodItem>> = _currentUserId.flatMapLatest { userId ->
         repository.getAllActiveItems(userId)
+    }.asLiveData()
+
+    @OptIn(ExperimentalCoroutinesApi::class)
+    val allItems: LiveData<List<FoodItem>> = _currentUserId.flatMapLatest { userId ->
+        repository.getAllItemsOfUser(userId)
     }.asLiveData()
 
     @OptIn(ExperimentalCoroutinesApi::class)
@@ -119,6 +125,8 @@ class FoodViewModel(application: Application) : AndroidViewModel(application) {
     val insightData: LiveData<InsightStats> = combine(_currentUserId, _filterPeriod) { userId, period ->
         userId to period
     }.flatMapLatest { (userId, period) ->
+        if (userId.isEmpty()) return@flatMapLatest flowOf(InsightStats(0, 0, 0.0))
+        
         val calendar = Calendar.getInstance()
         val now = System.currentTimeMillis()
         
@@ -167,25 +175,24 @@ class FoodViewModel(application: Application) : AndroidViewModel(application) {
             val consumed = flows[0] as List<FoodItem>
             val expired = flows[1] as List<FoodItem>
             val active = flows[2] as List<FoodItem>
-            // flows[3] is purchased, not used here
             val prevConsumed = flows[4] as List<FoodItem>
             val prevExpired = flows[5] as List<FoodItem>
 
             val consumedCount = consumed.size
             val expiredCount = expired.size
             
-            // Economia: valor dos itens consumidos no prazo + valor dos itens ativos - valor dos itens desperdiçados
-            val savings = (consumed.sumOf { if ((it.consumedDate ?: 0) <= it.expirationDate) (it.price ?: 0.0) else 0.0 }) +
-                         (active.sumOf { it.price ?: 0.0 }) -
-                         (expired.sumOf { it.price ?: 0.0 })
+            val savings = (consumed.sumOf { 
+                if ((it.consumedDate ?: 0) <= it.expirationDate) (it.price ?: 0.0) else 0.0 
+            }) +
+            (active.sumOf { it.price ?: 0.0 }) -
+            (expired.sumOf { it.price ?: 0.0 })
 
-            // Previous month savings calculation
             val prevSavings = (prevConsumed.sumOf { if ((it.consumedDate ?: 0) <= it.expirationDate) (it.price ?: 0.0) else 0.0 }) -
                              (prevExpired.sumOf { it.price ?: 0.0 })
 
-            val trend = if (prevSavings > 0) {
-                ((savings - prevSavings) / prevSavings * 100).toInt()
-            } else if (savings > 0) {
+            val trend = if (prevSavings != 0.0) {
+                ((savings - prevSavings) / Math.abs(prevSavings) * 100).toInt()
+            } else if (savings != 0.0) {
                 100
             } else {
                 0
@@ -198,6 +205,41 @@ class FoodViewModel(application: Application) : AndroidViewModel(application) {
 
             InsightStats(consumedCount, expiredCount, savings, wastedCats, trend)
         }
+    }.asLiveData()
+
+    /**
+     * Economia específica da semana atual para a tela inicial.
+     * Corrigido para garantir que sempre emita um valor (mesmo que 0.0) e lide com erros.
+     */
+    @OptIn(ExperimentalCoroutinesApi::class)
+    val weeklySavings: LiveData<Double> = _currentUserId.flatMapLatest { userId ->
+        if (userId.isEmpty()) return@flatMapLatest flowOf(0.0)
+        
+        val calendar = Calendar.getInstance()
+        val now = System.currentTimeMillis()
+        
+        // Início da semana (Domingo 00:00)
+        calendar.set(Calendar.DAY_OF_WEEK, calendar.firstDayOfWeek)
+        calendar.set(Calendar.HOUR_OF_DAY, 0)
+        calendar.set(Calendar.MINUTE, 0)
+        calendar.set(Calendar.SECOND, 0)
+        calendar.set(Calendar.MILLISECOND, 0)
+        val startTime = calendar.timeInMillis
+
+        combine(
+            repository.getConsumedItemsInRange(userId, startTime, now),
+            repository.getExpiredItemsInRange(userId, startTime, now, now),
+            repository.getActiveNotExpired(userId, now)
+        ) { consumed, expired, active ->
+            val consumedSavings = consumed.sumOf { 
+                val price = it.price ?: 0.0
+                if ((it.consumedDate ?: 0) <= it.expirationDate) price else 0.0 
+            }
+            val activeValue = active.sumOf { it.price ?: 0.0 }
+            val expiredLoss = expired.sumOf { it.price ?: 0.0 }
+            
+            consumedSavings + activeValue - expiredLoss
+        }.onStart { emit(0.0) }.catch { emit(0.0) }
     }.asLiveData()
 
     data class InsightStats(
@@ -228,7 +270,14 @@ class FoodViewModel(application: Application) : AndroidViewModel(application) {
         if (email != null) {
             viewModelScope.launch {
                 val user = FoodDatabase.getDatabase(getApplication()).userDao().getUserByEmail(email)
-                _currentUser.value = user
+                if (user == null && email.isNotEmpty()) {
+                    // Se o banco foi limpo (migração), desloga o usuário para evitar inconsistência
+                    userManager.logout()
+                    _currentUserId.value = ""
+                    _currentUser.value = null
+                } else {
+                    _currentUser.value = user
+                }
             }
         }
     }
@@ -261,7 +310,8 @@ class FoodViewModel(application: Application) : AndroidViewModel(application) {
     }
 
     fun update(foodItem: FoodItem) = viewModelScope.launch(Dispatchers.IO) {
-        repository.update(foodItem)
+        val itemWithModifiedDate = foodItem.copy(lastModifiedDate = System.currentTimeMillis())
+        repository.update(itemWithModifiedDate)
     }
 
     fun delete(foodItem: FoodItem) = viewModelScope.launch(Dispatchers.IO) {
@@ -276,9 +326,19 @@ class FoodViewModel(application: Application) : AndroidViewModel(application) {
         repository.markAsDiscarded(foodItemId, System.currentTimeMillis())
     }
 
-    fun updateGoals(savingsGoal: Double, wasteCountGoal: Int) = viewModelScope.launch(Dispatchers.IO) {
+    fun updateGoals(
+        savingsGoal: Double,
+        savingsPeriod: String,
+        wasteCountGoal: Int,
+        wastePeriod: String
+    ) = viewModelScope.launch(Dispatchers.IO) {
         val user = _currentUser.value ?: return@launch
-        val updatedUser = user.copy(savingsGoal = savingsGoal, wasteCountGoal = wasteCountGoal)
+        val updatedUser = user.copy(
+            savingsGoal = savingsGoal,
+            savingsGoalPeriod = savingsPeriod,
+            wasteCountGoal = wasteCountGoal,
+            wasteGoalPeriod = wastePeriod
+        )
         updateUser(updatedUser)
     }
 }

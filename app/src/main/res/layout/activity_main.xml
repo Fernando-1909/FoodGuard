@@ -21,8 +21,9 @@
         android:layout_gravity="bottom"
         app:backgroundTint="@color/white"
         app:fabAlignmentMode="center"
-        app:fabCradleMargin="8dp"
-        app:fabCradleRoundedCornerRadius="24dp">
+        app:fabCradleMargin="10dp"
+        app:fabCradleRoundedCornerRadius="30dp"
+        app:elevation="8dp">
 
         <com.google.android.material.bottomnavigation.BottomNavigationView
             android:id="@+id/bottomNavigation"
@@ -45,9 +46,10 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:contentDescription="Adicionar Alimento"
-        app:backgroundTint="@color/primary_black"
+        app:backgroundTint="@color/primary_green"
         app:layout_anchor="@id/bottomAppBar"
         app:srcCompat="@android:drawable/ic_input_add"
-        app:tint="@color/white" />
+        app:tint="@color/white"
+        app:maxImageSize="32dp" />
 
 </androidx.coordinatorlayout.widget.CoordinatorLayout>

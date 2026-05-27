@@ -4,7 +4,7 @@
     android:viewportWidth="108"
     android:viewportHeight="108">
 
-    <!-- Fundo verde circular do logo (mesmo do ic_app_logo para consistência) -->
+    <!-- Fundo verde circular do logo -->
     <path
         android:fillColor="#2E7D32"
         android:pathData="M54,54m-48,0a48,48 0,1 1,96 0a48,48 0,1 1,-96 0" />
@@ -14,7 +14,7 @@
         android:fillColor="#FFFFFF"
         android:pathData="M38,22h32c2,0 4,2 4,4v56c0,2 -2,4 -4,4h-32c-2,0 -4,-2 -4,-4v-56c0,-2 2,-4 4,-4z" />
 
-    <!-- Divisória -->
+    <!-- Divisória (espaço entre porta superior e inferior) -->
     <path
         android:fillColor="#2E7D32"
         android:pathData="M34,48h40v2h-40z" />

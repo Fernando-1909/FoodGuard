@@ -20,6 +20,7 @@ import com.example.foodguard.data.FoodDatabase
 import com.example.foodguard.data.UserManager
 import com.example.foodguard.viewmodel.FoodViewModel
 import com.google.android.material.button.MaterialButton
+import com.google.android.material.imageview.ShapeableImageView
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 import java.io.File
@@ -29,15 +30,25 @@ class ProfileFragment : Fragment() {
 
     private lateinit var userManager: UserManager
     private val viewModel: FoodViewModel by activityViewModels()
-    private lateinit var ivProfile: ImageView
+    private lateinit var ivProfile: ShapeableImageView
 
+    private var currentImageUri: Uri? = null
     private var cameraTempUri: Uri? = null
 
-    private val pickImageLauncher = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
-        if (result.resultCode == Activity.RESULT_OK) {
-            val imageUri = result.data?.data ?: cameraTempUri
-            if (imageUri != null) {
-                saveProfileImage(imageUri)
+    private val getContent = registerForActivityResult(ActivityResultContracts.GetContent()) { uri: Uri? ->
+        uri?.let {
+            val savedUri = saveImageLocally(it)
+            if (savedUri != null) {
+                updateProfileImage(savedUri)
+            }
+        }
+    }
+
+    private val takePicture = registerForActivityResult(ActivityResultContracts.TakePicture()) { success: Boolean ->
+        if (success && cameraTempUri != null) {
+            val savedUri = saveImageLocally(cameraTempUri!!)
+            if (savedUri != null) {
+                updateProfileImage(savedUri)
             }
         }
     }
@@ -56,19 +67,29 @@ class ProfileFragment : Fragment() {
         val tvUserName = view.findViewById<TextView>(R.id.tvUserName)
         val tvUserEmail = view.findViewById<TextView>(R.id.tvUserEmail)
         ivProfile = view.findViewById(R.id.ivProfile)
+        val fabEditPhoto = view.findViewById<View>(R.id.fabEditPhoto)
 
         lifecycleScope.launch {
             viewModel.currentUser.collectLatest { user ->
                 if (user != null) {
                     tvUserName.text = user.name
                     tvUserEmail.text = user.email
-                    if (user.profileImageUri != null) {
+                    if (!user.profileImageUri.isNullOrEmpty()) {
                         loadProfileImage(user.profileImageUri)
+                    } else {
+                        ivProfile.setImageResource(R.drawable.ic_profile)
+                        ivProfile.scaleType = ImageView.ScaleType.CENTER_INSIDE
+                        ivProfile.setPadding(60, 60, 60, 60)
+                        ivProfile.setColorFilter(resources.getColor(R.color.primary_green, null))
                     }
                 }
             }
         }
 
+        fabEditPhoto.setOnClickListener {
+            showImagePickerOptions()
+        }
+        
         ivProfile.setOnClickListener {
             showImagePickerOptions()
         }
@@ -112,8 +133,7 @@ class ProfileFragment : Fragment() {
     }
 
     private fun openGallery() {
-        val intent = Intent(Intent.ACTION_PICK, MediaStore.Images.Media.EXTERNAL_CONTENT_URI)
-        pickImageLauncher.launch(intent)
+        getContent.launch("image/*")
     }
 
     private fun openCamera() {
@@ -126,39 +146,53 @@ class ProfileFragment : Fragment() {
             tempFile
         )
         cameraTempUri = uri
-        val intent = Intent(MediaStore.ACTION_IMAGE_CAPTURE)
-        intent.putExtra(MediaStore.EXTRA_OUTPUT, uri)
-        pickImageLauncher.launch(intent)
+        takePicture.launch(uri)
     }
 
-    private fun saveProfileImage(uri: Uri) {
-        try {
+    private fun saveImageLocally(uri: Uri): Uri? {
+        return try {
             val inputStream = requireContext().contentResolver.openInputStream(uri)
-            val file = File(requireContext().filesDir, "profile_${System.currentTimeMillis()}.jpg")
+            val fileName = "profile_${System.currentTimeMillis()}.jpg"
+            val file = File(requireContext().filesDir, fileName)
             val outputStream = FileOutputStream(file)
             inputStream?.copyTo(outputStream)
-            
-            val user = viewModel.currentUser.value
-            if (user != null) {
-                val updatedUser = user.copy(profileImageUri = file.absolutePath)
-                viewModel.updateUser(updatedUser)
-                Toast.makeText(context, "Foto de perfil atualizada", Toast.LENGTH_SHORT).show()
-            }
+            inputStream?.close()
+            outputStream.close()
+            Uri.fromFile(file)
         } catch (e: Exception) {
-            Toast.makeText(context, "Erro ao salvar imagem", Toast.LENGTH_SHORT).show()
+            e.printStackTrace()
+            null
         }
     }
 
-    private fun loadProfileImage(path: String) {
+    private fun updateProfileImage(uri: Uri) {
+        val user = viewModel.currentUser.value
+        if (user != null) {
+            val updatedUser = user.copy(profileImageUri = uri.toString())
+            viewModel.updateUser(updatedUser)
+            Toast.makeText(context, "Foto de perfil atualizada", Toast.LENGTH_SHORT).show()
+        }
+    }
+
+    private fun loadProfileImage(uriString: String) {
         try {
-            val bitmap = BitmapFactory.decodeFile(path)
+            val uri = Uri.parse(uriString)
+            val inputStream = requireContext().contentResolver.openInputStream(uri)
+            val bitmap = BitmapFactory.decodeStream(inputStream)
+            inputStream?.close()
+
             if (bitmap != null) {
                 ivProfile.setImageBitmap(bitmap)
                 ivProfile.scaleType = ImageView.ScaleType.CENTER_CROP
                 ivProfile.setPadding(0, 0, 0, 0)
+                ivProfile.clearColorFilter()
             }
         } catch (e: Exception) {
-            // Rollback to default icon
+            e.printStackTrace()
+            ivProfile.setImageResource(R.drawable.ic_profile)
+            ivProfile.scaleType = ImageView.ScaleType.CENTER_INSIDE
+            ivProfile.setPadding(60, 60, 60, 60)
+            ivProfile.setColorFilter(resources.getColor(R.color.primary_green, null))
         }
     }
 }

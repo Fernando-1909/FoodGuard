@@ -1,3 +1,13 @@
 <resources>
     <string name="app_name">FoodGuard</string>
+    <string name="items_expiring">itens vencendo</string>
+    <string name="weekly_economy">economia da semana</string>
+    <string name="history_consumed">Consumido em %1$s</string>
+    <string name="history_discarded">Descartado em %1$s</string>
+    <string name="history_expired">Vencido em %1$s</string>
+    <string name="history_added">Adicionado em %1$s</string>
+    <string name="history_type_savings">Economizado</string>
+    <string name="history_type_loss">Perda</string>
+    <string name="history_type_stock">Em estoque</string>
+    <string name="history_edited">Editado em %1$s</string>
 </resources>

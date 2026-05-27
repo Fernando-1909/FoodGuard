@@ -33,7 +33,15 @@ class FoodsFragment : Fragment() {
 
         val tvExpiringCount = view.findViewById<TextView>(R.id.tvExpiringCount)
         val tvEstimatedSavings = view.findViewById<TextView>(R.id.tvEstimatedSavings)
+        val tvSavingsLabel = view.findViewById<TextView>(R.id.tvSavingsLabel)
         val recyclerView = view.findViewById<RecyclerView>(R.id.rvFoodItems)
+        val btnHistory = view.findViewById<View>(R.id.btnFoodHistory)
+
+        btnHistory.setOnClickListener {
+            val intent = Intent(requireContext(), HistoryActivity::class.java)
+            intent.putExtra("HISTORY_TYPE", "ALL")
+            startActivity(intent)
+        }
 
         adapter = FoodAdapter { foodItem ->
             val intent = Intent(requireContext(), FoodDetailActivity::class.java)
@@ -53,16 +61,16 @@ class FoodsFragment : Fragment() {
             tvExpiringCount.text = expiringCount.toString()
         }
 
-        // Observer para a economia mensal com lógica de cor para valores negativos
-        viewModel.monthlySavings.observe(viewLifecycleOwner) { savings ->
-            val value = savings ?: 0.0
-            tvEstimatedSavings.text = currencyFormat.format(value)
+        // Observer para a economia semanal (Fix: agora focado apenas na semana e garantindo exibição)
+        viewModel.weeklySavings.observe(viewLifecycleOwner) { value ->
+            tvEstimatedSavings.text = currencyFormat.format(value ?: 0.0)
             
             if (value < 0) {
                 tvEstimatedSavings.setTextColor(ContextCompat.getColor(requireContext(), R.color.status_red))
             } else {
-                tvEstimatedSavings.setTextColor(ContextCompat.getColor(requireContext(), R.color.primary_black))
+                tvEstimatedSavings.setTextColor(ContextCompat.getColor(requireContext(), R.color.white))
             }
+            tvSavingsLabel.setText(R.string.weekly_economy)
         }
     }
 }

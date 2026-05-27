@@ -13,7 +13,7 @@
         android:layout_height="40dp"
         android:background="@color/background_gray"
         android:padding="8dp"
-        android:src="@android:drawable/ic_menu_agenda"
+        android:src="@drawable/ic_apple"
         app:tint="@color/primary_black" />
 
     <LinearLayout

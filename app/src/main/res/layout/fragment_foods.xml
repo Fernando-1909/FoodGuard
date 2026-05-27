@@ -4,12 +4,12 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/white">
+    android:background="@color/background_gray">
 
     <com.google.android.material.appbar.AppBarLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:background="@color/white"
+        android:background="@color/background_gray"
         app:elevation="0dp">
 
         <LinearLayout
@@ -17,7 +17,7 @@
             android:layout_height="wrap_content"
             android:orientation="vertical"
             android:paddingHorizontal="20dp"
-            android:paddingTop="16dp">
+            android:paddingTop="24dp">
 
             <RelativeLayout
                 android:layout_width="match_parent"
@@ -28,10 +28,21 @@
                     android:id="@+id/tvTitle"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:fontFamily="sans-serif-medium"
-                    android:text="Alimentos"
+                    android:fontFamily="sans-serif-black"
+                    android:text="Meus Alimentos"
                     android:textColor="@color/primary_black"
-                    android:textSize="28sp" />
+                    android:textSize="32sp" />
+
+                <ImageButton
+                    android:id="@+id/btnFoodHistory"
+                    android:layout_width="48dp"
+                    android:layout_height="48dp"
+                    android:layout_alignParentEnd="true"
+                    android:layout_centerVertical="true"
+                    android:background="?attr/selectableItemBackgroundBorderless"
+                    android:src="@drawable/ic_history"
+                    app:tint="@color/primary_black"
+                    android:contentDescription="Histórico de Alimentos" />
 
             </RelativeLayout>
 
@@ -44,12 +55,12 @@
 
                 <com.google.android.material.card.MaterialCardView
                     android:layout_width="0dp"
-                    android:layout_height="120dp"
+                    android:layout_height="130dp"
                     android:layout_marginEnd="12dp"
                     android:layout_weight="1"
-                    app:cardBackgroundColor="@color/badge_black"
-                    app:cardCornerRadius="16dp"
-                    app:cardElevation="0dp">
+                    app:cardBackgroundColor="@color/primary_green"
+                    app:cardCornerRadius="20dp"
+                    app:cardElevation="4dp">
 
                     <LinearLayout
                         android:layout_width="match_parent"
@@ -57,54 +68,39 @@
                         android:orientation="vertical"
                         android:padding="16dp">
 
-                        <LinearLayout
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:gravity="center_vertical"
-                            android:orientation="horizontal">
-
-                            <ImageView
-                                android:layout_width="14dp"
-                                android:layout_height="14dp"
-                                android:src="@android:drawable/ic_dialog_info"
-                                app:tint="@color/white" />
-
-                            <TextView
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:layout_marginStart="6dp"
-                                android:text="Vencendo em 3 dias"
-                                android:textColor="@color/white"
-                                android:textSize="11sp" />
-                        </LinearLayout>
+                        <ImageView
+                            android:layout_width="24dp"
+                            android:layout_height="24dp"
+                            android:src="@drawable/ic_apple"
+                            app:tint="@color/white" />
 
                         <TextView
                             android:id="@+id/tvExpiringCount"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:layout_marginTop="12dp"
+                            android:layout_marginTop="8dp"
                             android:text="0"
                             android:textColor="@color/white"
-                            android:textSize="32sp"
-                            android:textStyle="bold" />
+                            android:textSize="36sp"
+                            android:fontFamily="sans-serif-black" />
 
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="itens"
+                            android:text="@string/items_expiring"
                             android:textColor="@color/white"
                             android:textSize="12sp"
-                            android:alpha="0.7" />
+                            android:alpha="0.9" />
                     </LinearLayout>
                 </com.google.android.material.card.MaterialCardView>
 
                 <com.google.android.material.card.MaterialCardView
                     android:layout_width="0dp"
-                    android:layout_height="120dp"
+                    android:layout_height="130dp"
                     android:layout_weight="1"
-                    app:cardBackgroundColor="@color/background_gray"
-                    app:cardCornerRadius="16dp"
-                    app:cardElevation="0dp">
+                    app:cardBackgroundColor="@color/primary_green"
+                    app:cardCornerRadius="20dp"
+                    app:cardElevation="4dp">
 
                     <LinearLayout
                         android:layout_width="match_parent"
@@ -112,52 +108,33 @@
                         android:orientation="vertical"
                         android:padding="16dp">
 
-                        <LinearLayout
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:gravity="center_vertical"
-                            android:orientation="horizontal">
-
-                            <ImageView
-                                android:layout_width="14dp"
-                                android:layout_height="14dp"
-                                android:src="@android:drawable/ic_menu_manage"
-                                app:tint="@color/primary_black" />
-
-                            <TextView
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:layout_marginStart="6dp"
-                                android:text="Economia estimada"
-                                android:textColor="@color/primary_black"
-                                android:textSize="11sp" />
-                        </LinearLayout>
+                        <ImageView
+                            android:layout_width="24dp"
+                            android:layout_height="24dp"
+                            android:src="@drawable/ic_insights"
+                            app:tint="@color/white" />
 
                         <TextView
                             android:id="@+id/tvEstimatedSavings"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:layout_marginTop="12dp"
+                            android:layout_marginTop="8dp"
                             android:text="R$ 0,00"
-                            android:textColor="@color/primary_black"
-                            android:textSize="24sp"
-                            android:textStyle="bold" />
+                            android:textColor="@color/white"
+                            android:textSize="22sp"
+                            android:fontFamily="sans-serif-black" />
 
                         <TextView
+                            android:id="@+id/tvSavingsLabel"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="este mês"
-                            android:textColor="@color/text_gray"
-                            android:textSize="12sp" />
+                            android:text="@string/weekly_economy"
+                            android:textColor="@color/white"
+                            android:textSize="12sp"
+                            android:alpha="0.9" />
                     </LinearLayout>
                 </com.google.android.material.card.MaterialCardView>
             </LinearLayout>
-
-            <View
-                android:layout_width="match_parent"
-                android:layout_height="1dp"
-                android:layout_marginBottom="20dp"
-                android:background="@color/divider_gray" />
 
         </LinearLayout>
     </com.google.android.material.appbar.AppBarLayout>

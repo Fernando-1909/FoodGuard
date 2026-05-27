@@ -24,5 +24,6 @@ data class FoodItem(
     val isDiscarded: Boolean = false,
     val conservationTips: String? = null,
     val reminderTimestamp: Long? = null,
-    val imageUri: String? = null
+    val imageUri: String? = null,
+    val lastModifiedDate: Long? = null
 ) : Parcelable

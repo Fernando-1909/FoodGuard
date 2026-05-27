@@ -91,7 +91,7 @@
             android:id="@+id/cardDays"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            app:cardBackgroundColor="@color/badge_black"
+            app:cardBackgroundColor="@color/primary_green"
             app:cardCornerRadius="12dp"
             app:cardElevation="0dp"
             app:layout_constraintBottom_toBottomOf="parent"
@@ -106,7 +106,7 @@
                 android:text="2 dias"
                 android:textColor="@color/white"
                 android:textSize="11sp"
-                android:textStyle="bold" />
+                android:fontFamily="sans-serif-black" />
         </com.google.android.material.card.MaterialCardView>
 
     </androidx.constraintlayout.widget.ConstraintLayout>

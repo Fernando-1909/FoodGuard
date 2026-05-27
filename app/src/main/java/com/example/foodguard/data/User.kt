@@ -11,5 +11,7 @@ data class User(
     val password: String,
     val profileImageUri: String? = null,
     val savingsGoal: Double = 0.0,
-    val wasteCountGoal: Int = 0
+    val wasteCountGoal: Int = 0,
+    val savingsGoalPeriod: String = "month",
+    val wasteGoalPeriod: String = "month"
 )

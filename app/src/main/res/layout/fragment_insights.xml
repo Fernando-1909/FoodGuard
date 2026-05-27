@@ -4,7 +4,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/white">
+    android:background="@color/background_gray">
 
     <LinearLayout
         android:layout_width="match_parent"
@@ -12,14 +12,31 @@
         android:orientation="vertical"
         android:padding="20dp">
 
-        <TextView
-            android:layout_width="wrap_content"
+        <RelativeLayout
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:fontFamily="sans-serif-medium"
-            android:text="Insights"
-            android:textColor="@color/primary_black"
-            android:textSize="28sp"
-            android:layout_marginBottom="24dp"/>
+            android:layout_marginBottom="24dp">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:fontFamily="sans-serif-black"
+                android:text="Insights"
+                android:textColor="@color/primary_black"
+                android:textSize="32sp" />
+
+            <ImageButton
+                android:id="@+id/btnEconomyHistory"
+                android:layout_width="48dp"
+                android:layout_height="48dp"
+                android:layout_alignParentEnd="true"
+                android:layout_centerVertical="true"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:src="@drawable/ic_history"
+                app:tint="@color/primary_black"
+                android:contentDescription="Histórico de Economia" />
+
+        </RelativeLayout>
 
         <!-- Period Selectors -->
         <HorizontalScrollView
@@ -39,47 +56,130 @@
                     android:layout_height="wrap_content"
                     android:text="Esta semana"
                     android:checked="true"
-                    app:chipBackgroundColor="@color/badge_black"
-                    android:textColor="@color/white" />
+                    app:chipBackgroundColor="@color/primary_green"
+                    android:textColor="@color/white"
+                    app:chipStrokeWidth="0dp" />
                 <com.google.android.material.chip.Chip
                     android:id="@+id/chipMonth"
                     style="@style/Widget.MaterialComponents.Chip.Choice"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Este mês" />
+                    android:text="Este mês"
+                    app:chipBackgroundColor="@color/white"
+                    app:chipStrokeWidth="1dp"
+                    app:chipStrokeColor="@color/divider_gray" />
                 <com.google.android.material.chip.Chip
                     android:id="@+id/chipThreeMonths"
                     style="@style/Widget.MaterialComponents.Chip.Choice"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Últimos 3 meses" />
+                    android:text="Últimos 3 meses"
+                    app:chipBackgroundColor="@color/white"
+                    app:chipStrokeWidth="1dp"
+                    app:chipStrokeColor="@color/divider_gray" />
             </com.google.android.material.chip.ChipGroup>
         </HorizontalScrollView>
+
+        <!-- Estimated Savings Card -->
+        <com.google.android.material.card.MaterialCardView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            app:cardBackgroundColor="@color/primary_green"
+            app:cardCornerRadius="24dp"
+            app:cardElevation="6dp"
+            android:layout_marginBottom="24dp">
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:padding="24dp">
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Economia estimada"
+                    android:textColor="@color/white"
+                    android:fontFamily="sans-serif-medium"
+                    android:alpha="0.9"/>
+                <TextView
+                    android:id="@+id/tvInsightsSavingsValue"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="R$ 127,50"
+                    android:textColor="@color/white"
+                    android:textSize="36sp"
+                    android:fontFamily="sans-serif-black"
+                    android:layout_marginTop="8dp"/>
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Evitados em desperdício no período"
+                    android:textColor="@color/white"
+                    android:alpha="0.7"
+                    android:textSize="12sp"
+                    android:layout_marginTop="4dp"/>
+                <View
+                    android:layout_width="match_parent"
+                    android:layout_height="1dp"
+                    android:background="#33FFFFFF"
+                    android:layout_marginVertical="16dp"/>
+                <RelativeLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content">
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Tendência"
+                        android:textColor="@color/white"
+                        android:textSize="12sp"/>
+                    <TextView
+                        android:id="@+id/tvSavingsTrend"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_alignParentEnd="true"
+                        android:text="+15%"
+                        android:textColor="@color/status_green"
+                        android:textStyle="bold"
+                        android:textSize="14sp"/>
+                </RelativeLayout>
+            </LinearLayout>
+        </com.google.android.material.card.MaterialCardView>
 
         <!-- Consumption vs Waste Card -->
         <com.google.android.material.card.MaterialCardView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            app:cardCornerRadius="16dp"
-            app:cardElevation="0dp"
-            app:strokeWidth="1dp"
-            app:strokeColor="@color/divider_gray"
+            app:cardCornerRadius="20dp"
+            app:cardElevation="2dp"
+            app:cardBackgroundColor="@color/white"
             android:layout_marginBottom="16dp">
 
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="vertical"
-                android:padding="16dp">
+                android:padding="20dp">
 
-                <TextView
-                    android:layout_width="wrap_content"
+                <RelativeLayout
+                    android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:text="Consumo vs Desperdício"
-                    android:textColor="@color/primary_black"
-                    android:textSize="14sp"
-                    android:textStyle="bold"
-                    android:layout_marginBottom="16dp"/>
+                    android:layout_marginBottom="20dp">
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Uso de Alimentos"
+                        android:textColor="@color/primary_black"
+                        android:textSize="16sp"
+                        android:fontFamily="sans-serif-black"/>
+                    <TextView
+                        android:id="@+id/tvEfficiencyRate"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_alignParentEnd="true"
+                        android:text="100%"
+                        android:textColor="@color/primary_green"
+                        android:textStyle="bold"
+                        android:textSize="16sp"/>
+                </RelativeLayout>
 
                 <LinearLayout
                     android:layout_width="match_parent"
@@ -97,7 +197,7 @@
                             android:id="@+id/barConsumed"
                             android:layout_width="60dp"
                             android:layout_height="80dp"
-                            android:background="@color/primary_black" />
+                            android:background="@color/primary_green" />
                         <TextView
                             android:id="@+id/tvConsumedBarValue"
                             android:layout_width="wrap_content"
@@ -111,6 +211,7 @@
                             android:layout_height="wrap_content"
                             android:text="Consumidos"
                             android:textSize="12sp"
+                            android:fontFamily="sans-serif-medium"
                             android:layout_marginTop="16dp"/>
                     </LinearLayout>
 
@@ -124,7 +225,7 @@
                             android:id="@+id/barWasted"
                             android:layout_width="60dp"
                             android:layout_height="20dp"
-                            android:background="@color/card_gray" />
+                            android:background="@color/status_red" />
                         <TextView
                             android:id="@+id/tvWastedBarValue"
                             android:layout_width="wrap_content"
@@ -136,95 +237,10 @@
                             android:layout_height="wrap_content"
                             android:text="Descartados"
                             android:textSize="12sp"
-                            android:layout_marginTop="8dp"/>
+                            android:fontFamily="sans-serif-medium"
+                            android:layout_marginTop="16dp"/>
                     </LinearLayout>
                 </LinearLayout>
-
-                <View
-                    android:layout_width="match_parent"
-                    android:layout_height="1dp"
-                    android:background="@color/divider_gray"
-                    android:layout_marginVertical="16dp"/>
-
-                <RelativeLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content">
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="Taxa de aproveitamento"
-                        android:textSize="12sp"/>
-                    <TextView
-                        android:id="@+id/tvEfficiencyRate"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_alignParentEnd="true"
-                        android:text="80%"
-                        android:textStyle="bold"
-                        android:textSize="12sp"/>
-                </RelativeLayout>
-            </LinearLayout>
-        </com.google.android.material.card.MaterialCardView>
-
-        <!-- Estimated Savings Card -->
-        <com.google.android.material.card.MaterialCardView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            app:cardBackgroundColor="@color/badge_black"
-            app:cardCornerRadius="16dp"
-            android:layout_marginBottom="24dp">
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="vertical"
-                android:padding="20dp">
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="Economia estimada"
-                    android:textColor="@color/white"
-                    android:textStyle="bold"/>
-                <TextView
-                    android:id="@+id/tvInsightsSavingsValue"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="R$ 127,50"
-                    android:textColor="@color/white"
-                    android:textSize="28sp"
-                    android:textStyle="bold"
-                    android:layout_marginTop="8dp"/>
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="Evitados em desperdício este mês"
-                    android:textColor="@color/white"
-                    android:alpha="0.7"
-                    android:textSize="12sp"
-                    android:layout_marginTop="4dp"/>
-                <View
-                    android:layout_width="match_parent"
-                    android:layout_height="1dp"
-                    android:background="#33FFFFFF"
-                    android:layout_marginVertical="16dp"/>
-                <RelativeLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content">
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="vs. mês anterior"
-                        android:textColor="@color/white"
-                        android:textSize="12sp"/>
-                    <TextView
-                        android:id="@+id/tvSavingsTrend"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_alignParentEnd="true"
-                        android:text="+15%"
-                        android:textColor="@color/status_green"
-                        android:textStyle="bold"
-                        android:textSize="12sp"/>
-                </RelativeLayout>
             </LinearLayout>
         </com.google.android.material.card.MaterialCardView>
 
@@ -245,67 +261,158 @@
             <!-- Dynamically added category rows -->
         </LinearLayout>
 
-        <!-- Weekly Goal -->
-        <com.google.android.material.card.MaterialCardView
+        <!-- Goals Container -->
+        <LinearLayout
+            android:id="@+id/layoutGoals"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            app:cardCornerRadius="16dp"
-            app:cardElevation="0dp"
-            app:strokeWidth="1dp"
-            app:strokeColor="@color/divider_gray"
-            android:layout_marginBottom="24dp">
-            <LinearLayout
+            android:orientation="vertical">
+
+            <!-- Savings Goal Card -->
+            <com.google.android.material.card.MaterialCardView
+                android:id="@+id/cardSavingsGoal"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:orientation="vertical"
-                android:padding="16dp">
-                <TextView
-                    android:id="@+id/tvGoalTitle"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="Meta semanal"
-                    android:textStyle="bold"/>
-                <RelativeLayout
+                app:cardCornerRadius="16dp"
+                app:cardElevation="0dp"
+                app:strokeWidth="1dp"
+                app:strokeColor="@color/divider_gray"
+                android:layout_marginBottom="16dp"
+                android:visibility="gone">
+                <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="12dp">
+                    android:orientation="vertical"
+                    android:padding="16dp">
                     <TextView
-                        android:id="@+id/tvGoalProgress"
+                        android:id="@+id/tvSavingsGoalTitle"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:layout_alignParentEnd="true"
-                        android:text="75%"
+                        android:text="Meta de Economia"
+                        android:textStyle="bold"/>
+                    <RelativeLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="12dp">
+                        <TextView
+                            android:id="@+id/tvSavingsGoalProgress"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_alignParentEnd="true"
+                            android:text="0%"
+                            android:textStyle="bold"
+                            android:textSize="12sp"/>
+                    </RelativeLayout>
+                    <ProgressBar
+                        android:id="@+id/pbSavingsGoal"
+                        style="?android:attr/progressBarStyleHorizontal"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:progress="0"
+                        android:layout_marginTop="8dp"
+                        android:progressTint="@color/primary_green"/>
+                    <TextView
+                        android:id="@+id/tvSavingsGoalDescription"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Economizado R$ 0,00 de R$ 0,00"
+                        android:textSize="11sp"
+                        android:textColor="@color/text_gray"
+                        android:layout_marginTop="12dp"/>
+                </LinearLayout>
+            </com.google.android.material.card.MaterialCardView>
+
+            <!-- Waste Goal Card -->
+            <com.google.android.material.card.MaterialCardView
+                android:id="@+id/cardWasteGoal"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                app:cardCornerRadius="16dp"
+                app:cardElevation="0dp"
+                app:strokeWidth="1dp"
+                app:strokeColor="@color/divider_gray"
+                android:layout_marginBottom="16dp"
+                android:visibility="gone">
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:padding="16dp">
+                    <TextView
+                        android:id="@+id/tvWasteGoalTitle"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Limite de Desperdício"
+                        android:textStyle="bold"/>
+                    <RelativeLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="12dp">
+                        <TextView
+                            android:id="@+id/tvWasteGoalProgress"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_alignParentEnd="true"
+                            android:text="0%"
+                            android:textStyle="bold"
+                            android:textSize="12sp"/>
+                    </RelativeLayout>
+                    <ProgressBar
+                        android:id="@+id/pbWasteGoal"
+                        style="?android:attr/progressBarStyleHorizontal"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:progress="0"
+                        android:layout_marginTop="8dp"
+                        android:progressTint="@color/status_red"/>
+                    <TextView
+                        android:id="@+id/tvWasteGoalDescription"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Você ainda pode desperdiçar 0 de 0 itens"
+                        android:textSize="11sp"
+                        android:textColor="@color/text_gray"
+                        android:layout_marginTop="12dp"/>
+                </LinearLayout>
+            </com.google.android.material.card.MaterialCardView>
+
+            <!-- Empty Goal State -->
+            <com.google.android.material.card.MaterialCardView
+                android:id="@+id/cardEmptyGoal"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                app:cardCornerRadius="16dp"
+                app:cardElevation="0dp"
+                app:strokeWidth="1dp"
+                app:strokeColor="@color/divider_gray"
+                android:layout_marginBottom="16dp"
+                android:visibility="visible">
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:padding="16dp"
+                    android:gravity="center">
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Nenhuma meta definida para este período"
                         android:textStyle="bold"
-                        android:textSize="12sp"/>
-                </RelativeLayout>
-                <ProgressBar
-                    android:id="@+id/pbGoal"
-                    style="?android:attr/progressBarStyleHorizontal"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:progress="75"
-                    android:layout_marginTop="8dp"
-                    android:progressTint="@color/primary_black"/>
-                <TextView
-                    android:id="@+id/tvGoalDescription"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="6 de 8 alimentos consumidos antes do vencimento"
-                    android:textSize="11sp"
-                    android:textColor="@color/text_gray"
-                    android:layout_marginTop="12dp"/>
-                <com.google.android.material.button.MaterialButton
-                    android:id="@+id/btnEditGoal"
-                    style="@style/Widget.MaterialComponents.Button.OutlinedButton"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:text="Editar meta"
-                    android:layout_marginTop="16dp"
-                    android:textAllCaps="false"
-                    app:strokeColor="@color/divider_gray"
-                    android:textColor="@color/primary_black"/>
-            </LinearLayout>
-        </com.google.android.material.card.MaterialCardView>
+                        android:textColor="@color/text_gray"/>
+                </LinearLayout>
+            </com.google.android.material.card.MaterialCardView>
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnEditGoal"
+                style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Configurar Metas"
+                android:layout_marginBottom="24dp"
+                android:textAllCaps="false"
+                app:strokeColor="@color/divider_gray"
+                android:textColor="@color/primary_black"/>
+        </LinearLayout>
 
         <TextView
             android:layout_width="wrap_content"
@@ -334,8 +441,8 @@
                     android:id="@+id/ivSuggestionIcon"
                     android:layout_width="40dp"
                     android:layout_height="40dp"
-                    android:src="@android:drawable/ic_dialog_info"
-                    app:tint="@color/primary_black"
+                    android:src="@drawable/ic_apple"
+                    app:tint="@color/primary_green"
                     android:background="@color/background_gray"
                     android:padding="8dp"/>
                 <LinearLayout

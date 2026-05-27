@@ -35,6 +35,9 @@ interface FoodDao {
     @Query("SELECT COUNT(*) FROM food_items WHERE userId = :userId AND isConsumed = 0 AND isDiscarded = 0 AND expirationDate < :currentTime")
     fun getExpiredCount(userId: String, currentTime: Long): Flow<Int>
     
+    @Query("SELECT * FROM food_items WHERE userId = :userId ORDER BY purchaseDate DESC")
+    fun getAllItemsOfUser(userId: String): Flow<List<FoodItem>>
+
     @Query("SELECT * FROM food_items WHERE userId = :userId AND isConsumed = 1 ORDER BY consumedDate DESC")
     fun getConsumedItems(userId: String): Flow<List<FoodItem>>
 

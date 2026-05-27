@@ -60,6 +60,8 @@ class FoodRepository(private val foodDao: FoodDao) {
         return foodDao.getExpiredItemsInRange(userId, startTime, endTime, currentTime)
     }
 
+    fun getAllItemsOfUser(userId: String): Flow<List<FoodItem>> = foodDao.getAllItemsOfUser(userId)
+
     fun getItemsWithReminders(userId: String): Flow<List<FoodItem>> = foodDao.getItemsWithReminders(userId)
 
     suspend fun deleteAll() {
